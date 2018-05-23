@@ -1,7 +1,10 @@
 #include<iostream>
 #include<algorithm>
 #include<string>
+#include<vector>
 #include<map>
+#include<tchar.h>
+#include "sqlite3.h"
 using namespace std;
 class Date
 {
@@ -51,8 +54,29 @@ public:
 	map<string, int> GlobalFriendMap;//全微X通用的好友列表
 	map<string, string> FriendMap;//单个应用的好友列表
 	map<string, int> GroupMap;//单个应用的群列表
-
+	virtual int SetName(string NewName) = 0;//设置新名字
+	virtual int LoginCheck() = 0;//检查登陆
+	virtual int DeledFromGroup() = 0;//从群中被删除
+	virtual int PermissionChange() = 0;//改变群权限
+	virtual int WriteToFile()=0;//写入文件
+	virtual int ReadFromFile() = 0;//读取文件
 private:
 	string Global_id;//全局ID
 	Date SignDay;//注册日(用来计算X龄)
+};
+class QQUser:virtual BaseUser
+{
+public:
+	static map<string, QQUser*> UserList;
+	static vector<int> FriendProductList;
+	static int LastQQid;
+	//三个存储的共享静态成员
+	string QQid;
+	QQUser() :BaseUser()//QQ注册
+	{
+		QQid = LastQQid;
+		LastQQid++;
+		UserList.insert(pair<string,QQUser*>(QQid, this));//加入QQ全局用户
+	}
+
 };
