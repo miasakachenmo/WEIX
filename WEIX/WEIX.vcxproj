@@ -26,6 +26,7 @@
     <Library Include="sqlite3.lib" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Func.h" />
     <ClInclude Include="sqlite3.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

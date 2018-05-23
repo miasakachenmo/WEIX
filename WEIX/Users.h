@@ -1,11 +1,16 @@
+# pragma  once 
+#define _CRT_SECURE_NO_WARNINGS
 #include<iostream>
 #include<algorithm>
 #include<string>
 #include<vector>
 #include<map>
-#include<tchar.h>
+#include<sstream>
 #include "sqlite3.h"
+#include "Func.h"
+
 using namespace std;
+
 class Date
 {
 public:
@@ -19,11 +24,11 @@ public:
 		int *MonthDayLimit;
 		do
 		{
-			cout << "输入出生年份:"<<endl;
+			cout << "输入出生年份:" << endl;
 			cin >> Year;
-			cout << "输入出生月份:"<<endl;
+			cout << "输入出生月份:" << endl;
 			cin >> Month;
-			cout << "输入出生日:"<<endl;
+			cout << "输入出生日:" << endl;
 			cin >> Day;
 			if (Year % 100 != 0 && Year % 4 == 0)MonthDayLimit = LeapMonthDay;//年份是闰年
 			else MonthDayLimit = MonthDay;
@@ -34,7 +39,13 @@ public:
 			}
 			else
 				return;
-		} while (!(Year > 0 && Year <= 2018 && Month > 0 && Month <= 12&&Day>0&&Day<=MonthDayLimit[Month-1]));
+		} while (!(Year > 0 && Year <= 2018 && Month > 0 && Month <= 12 && Day>0 && Day <= MonthDayLimit[Month - 1]));
+	}
+	string GetDateString()
+	{
+		char Res[9];
+		sprintf(Res, "%04d%02d%02d", Year, Month, Day);
+		return Res;
 	}
 };
 class BaseUser {
@@ -43,13 +54,18 @@ public:
 	string id;//分别到各个产品的号 比如QQ号
 	int ProductCode;//表示该用户存在的版本(此处主要用途是虚继承)
 	Date Birthday;
+	static string LastGlobalid;
 
 	BaseUser()//创建模式  ,  在基类中不执行文件操作 
 	{
-
+		Global_id = LastGlobalid;
+		String_Add(&LastGlobalid);
 		cout << "输入昵称";
 		cin >> Name;
 		Birthday.SetBirthday();
+		//Sqlstr="INSERT INTO USERS (GLOBAL_ID,NAME,BIRTHDAY)"
+	   //	Exe()
+
 	}
 	map<string, int> GlobalFriendMap;//全微X通用的好友列表
 	map<string, string> FriendMap;//单个应用的好友列表
