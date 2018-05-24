@@ -19,8 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Func.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Users.h" />
+    <ClCompile Include="Users.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="sqlite3.lib" />
@@ -28,6 +29,7 @@
   <ItemGroup>
     <ClInclude Include="Func.h" />
     <ClInclude Include="sqlite3.h" />
+    <ClInclude Include="Users.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
