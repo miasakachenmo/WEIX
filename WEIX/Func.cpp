@@ -3,11 +3,12 @@
 #include<algorithm>
 #include<string>
 #include<vector>
+#include<conio.h>
 #include<map>
 #include "sqlite3.h"
 #include "Users.h"
 using namespace std;
-extern vector<BaseUser*> UserList;
+extern map<int , map<string, BaseUser*> > UserList;//参数说明:<ProductCode<Globalid,指针>>
 //默认SQL回调函数,用于普通查询,插入
 int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 	int i;
@@ -25,11 +26,11 @@ int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName) {
 	{
 	case '1':
 	{
-		UserList.push_back((BaseUser*)(new QQUser(argv)));
+		UserList[1].insert(pair<string, BaseUser*>(argv[1], (BaseUser*)(new QQUser(argv))));
 	}
 	case '2':
 	{
-		UserList.push_back((BaseUser*)(new WeChatUser(argv)));
+		UserList[2].insert(pair<string, BaseUser*>(argv[1], (BaseUser*)(new WeChatUser(argv))));
 	}
 	default:
 		break;
@@ -99,5 +100,36 @@ int Exe(string SqlStr,int (*callbackfunc)(void *, int , char **, char **))
 		}
 	} while (rc != SQLITE_OK);
 	sqlite3_close(db);
+	return 0;
+}
+//创建用户菜单
+int CreatUserView()
+{
+	while (1)
+	{
+		char Option;
+		printf("1.创建一个QQ用户\n2.创建一个微信用户\n3.退出\n");
+		Option = _getch();
+		system("cls");
+		switch (Option)
+		{
+		case '1':
+		{
+			QQUser a;
+			break;
+		}
+		case '2':
+		{
+			WeChatUser b;
+			break;
+		}
+		case '3':
+			goto there;
+		default:
+			break;
+		}
+		system("cls");
+	}
+there:
 	return 0;
 }

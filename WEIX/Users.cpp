@@ -2,6 +2,9 @@
 #include "Users.h"
 #include "Func.h"
 extern string LastRECORDid;
+
+
+//---------------------日期类-------------------------------
 void Date::SetFromString(string a)
 {
 	Year = atoi(a.substr(0, 4).c_str());
@@ -36,6 +39,10 @@ string Date::GetDateString()
 	sprintf(Res, "%04d%02d%02d",Year, Month, Day);
 	return Res;
 }
+
+
+//---------------------基类---------------------------------
+//TODO 好友关系的创建,存储,和读取
 //通用部分的注册
 BaseUser::BaseUser()
 {
@@ -52,7 +59,6 @@ BaseUser::BaseUser()
 	Exe(Sqlstr);
 }
 //从文件读取通用部分
-
 BaseUser::BaseUser(char **Attrs)//从数据库中初始化
 {
 	RECORDid = Attrs[0];
@@ -61,6 +67,20 @@ BaseUser::BaseUser(char **Attrs)//从数据库中初始化
 	Birthday.SetFromString(Attrs[3]);
 	ReGistDate.SetFromString(Attrs[4]);
 }
+//创建好友关系
+int BaseUser::CreatFriendRelationship(string Target_Globalid)
+{
+	string SqlStr = "INSERT INTO FRIEND(FROMGB,TOGB,PRODUCTCODE)"\
+		"VALUES('" + Global_id + "', '" + Target_Globalid + "', '" + to_string(ProductCode) + "'); ";
+	Exe(SqlStr);
+	GlobalFriendMap.insert(pair<string,int>(Target_Globalid,ProductCode));
+	FriendMap.insert(pair<string, string>());
+	return 0;
+}
+
+
+
+//---------------------微信---------------------------------
 //微信用户注册
 WeChatUser::WeChatUser() :BaseUser()//QQ注册
 {
@@ -90,6 +110,10 @@ int WeChatUser::LoginCheck() { return 0; }
 int WeChatUser::DeledFromGroup() { return 0; }
 //改变群权限
 int WeChatUser::PermissionChange() { return 0; }
+
+
+
+//---------------------QQ---------------------------------
 //QQ注册
 QQUser::QQUser() :BaseUser()
 {

@@ -23,20 +23,25 @@ public:
 };
 class BaseUser {
 public:
-	string RECORDid;
+
+	map<string, int> GlobalFriendMap;//全微X通用的好友列表,参数意义:<Globalid,ProductCode>
+	map<string, string> FriendMap;//单个用户的好友列表 参数意义: <Globalid,ProductCode>
+	map<string, int> GroupMap;//单个应用的群列表
+
+	static string LastGlobalid;//最后的全局id
+	string RECORDid;//本用户在数据库对应的唯一id
 	string Name;//昵称
 	string id;//分别到各个产品的号 比如QQ号
 	int ProductCode;//表示该用户存在的版本(此处主要用途是虚继承)
 	Date Birthday;
-	static string LastGlobalid;
+	
 	Date ReGistDate;
+
+
 	//创建模式  ,  在基类中不执行文件操作 
 	BaseUser();
 	//从数据库中初始化
 	BaseUser(char **Attrs);
-	map<string, int> GlobalFriendMap;//全微X通用的好友列表
-	map<string, string> FriendMap;//单个用户的好友列表
-	map<string, int> GroupMap;//单个应用的群列表
 	//设置新名字
 	virtual int SetName(string NewName)=0;
 	//检查登陆
@@ -45,6 +50,10 @@ public:
 	virtual int DeledFromGroup()=0;
 	//改变群权限
 	virtual int PermissionChange()=0;
+	//创建好友关系
+	int CreatFriendRelationship(string Target_Globalid);
+
+
 private:
 	string Global_id;//全局ID
 	Date SignDay;//注册日(用来计算X龄)
@@ -52,7 +61,6 @@ private:
 class WeChatUser :public virtual BaseUser
 {
 public:
-	//static map<string, QQUser*> UserList;
 	//static vector<int> FriendProductList;
 	static string LastWeChatid;
 	//三个存储的共享静态成员
@@ -74,7 +82,6 @@ public:
 class QQUser :public virtual BaseUser
 {
 public:
-	//static map<string, QQUser*> UserList;
 	//static vector<int> FriendProductList;
 	static string LastQQid;
 	//三个存储的共享静态成员
