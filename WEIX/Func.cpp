@@ -12,6 +12,7 @@ extern map<int , map<string, BaseUser*> > UserList;//参数说明:<ProductCode<Globa
 bool Called = false;
 extern map<string, BaseUser*> QQUserList;
 extern map<string, BaseUser*> WeChatUserList;
+extern bool CanBack;
 //初始化函数!!!!
 int init()
 {
@@ -157,8 +158,9 @@ int Exe(string SqlStr,int (*callbackfunc)(void *, int , char **, char **))
 		return 1;
 }
 //创建用户菜单
-int CreatUserView()
+void CreatUserView()
 {
+	system("cls");
 	while (1)
 	{
 		char Option;
@@ -185,5 +187,5 @@ int CreatUserView()
 		system("cls");
 	}
 there:
-	return 0;
+	return;
 }

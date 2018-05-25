@@ -2,6 +2,7 @@
 #include "Users.h"
 #include<conio.h>
 #include <stdio.h>
+#include<functional>
 #include<map>
 #include "Func.h"
 using namespace std;
@@ -13,15 +14,34 @@ string QQUser::LastQQid = "888";
 string LastRECORDid ="1";
 string WeChatUser::LastWeChatid = "999";
 map<int, map<string, BaseUser*> > UserList;
-
 map<string, BaseUser*> QQUserList;
 map<string, BaseUser*> WeChatUserList;
-//TODO 初始化机制(生成Globalid Lastxxxid)
+BaseUser *CurrentUser;
+bool CanBack;
 int main()
 {
-	init();
-//	system("cls");
 	
+	init();
+	system("cls");	
+	while (true)
+	{
+		vector <function<void()>> Options;
+		Options.push_back(CreatUserView);
+		printf("1.用户创建\n2.用户登录\n");
+		char Option;
+		Option = _getch();
+		if (Option <= '2'&&Option >= '1')
+		{
+			CanBack = false;
+			Options[Option - '0'-1]();
+			if (CanBack = true)
+			{
+				CanBack = false;
+				return 0;
+			}
+		}
+	}
+
 	system("pause");
 	return 0;
 }

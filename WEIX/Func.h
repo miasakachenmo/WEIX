@@ -22,4 +22,4 @@ sqlite3* OpenDb();
 //执行指定SQLITE语句
 int Exe(string SqlStr, int(*callbackfunc)(void *, int, char **, char **) = callback);
 //创建用户菜单
-int CreatUserView();
+void CreatUserView();
