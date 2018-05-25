@@ -10,6 +10,26 @@
 using namespace std;
 extern map<int , map<string, BaseUser*> > UserList;//参数说明:<ProductCode<Globalid,指针>>
 bool Called = false;
+extern map<string, BaseUser*> QQUserList;
+extern map<string, BaseUser*> WeChatUserList;
+//初始化函数!!!!
+int init()
+{
+	UserList.insert(pair<int, map<string, BaseUser*>>(1, QQUserList));
+	UserList.insert(pair<int, map<string, BaseUser*>>(2, WeChatUserList));
+
+	//读取所有用户信息
+	string SqlString = "SELECT * FROM USERS";
+	Exe(SqlString, CreatCallBack);
+
+	//读取好友信息
+	SqlString = "SELECT * FROM FRIEND";
+	Exe(SqlString, GetFriendCallBack);
+
+
+	return 0;
+}
+//SQL回调函数------------------------------------------------------------------------------------------
 //默认SQL回调函数,用于普通查询,插入
 int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 	Called = true;
@@ -24,15 +44,30 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName) {
 	int i;
 	string a = argv[5];
-	switch (argv[5][0])
+	if (BaseUser::LastGlobalid <= argv[1])//刷新LastGlobalid
+	{
+		BaseUser::LastGlobalid = argv[1];
+		String_Add(&BaseUser::LastGlobalid);
+	}
+		switch (argv[5][0])
 	{
 	case '1':
 	{
 		UserList[1].insert(pair<string, BaseUser*>(argv[1], (BaseUser*)((new QQUser(argv)))));
+		if (QQUser::LastQQid <= argv[7])//刷新id
+		{
+			QQUser::LastQQid = argv[7];
+			String_Add(&QQUser::LastQQid);
+		}
 	}
 	case '2':
 	{
 		UserList[2].insert(pair<string, BaseUser*>(argv[1], (BaseUser*)(new WeChatUser(argv))));
+		if (WeChatUser::LastWeChatid <= argv[7])//刷新id
+		{
+			WeChatUser::LastWeChatid = argv[7];
+			String_Add(&WeChatUser::LastWeChatid);
+		}
 	}
 	default:
 		break;
@@ -43,6 +78,19 @@ int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName) {
 	printf("\n");
 	return 0;
 }
+//读取好友使用的SQL回调
+int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName)
+{
+	string FromGB = argv[1];
+	string ToGB = argv[2];
+	int ProductCode = atoi(argv[3]);
+	UserList[ProductCode][FromGB]->CreatFriendRelationship(ToGB);
+	printf("产品%d读取%s到%s的好友关系成功\n", ProductCode, FromGB.c_str(), ToGB.c_str());
+	return 0;
+}
+
+
+//功能函数----------------------------------------------------------------------------------------------
 //让一个数字字符串自加1
 void String_Add(string *a)
 {//while测试通过

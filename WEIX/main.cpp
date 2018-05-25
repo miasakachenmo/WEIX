@@ -19,14 +19,9 @@ map<string, BaseUser*> WeChatUserList;
 //TODO 初始化机制(生成Globalid Lastxxxid)
 int main()
 {
-	UserList.insert(pair<int, map<string, BaseUser*>>(1, QQUserList));
-	UserList.insert(pair<int, map<string, BaseUser*>>(2, WeChatUserList));
-	string SqlString = "SELECT * FROM USERS";
-	int a=Exe(SqlString);
-	Exe(SqlString, CreatCallBack);
-	BaseUser *b =UserList[1]["888"];
-	UserList[1]["888"]->CreatFriendRelationship("889");
+	init();
 //	system("cls");
+	
 	system("pause");
 	return 0;
 }

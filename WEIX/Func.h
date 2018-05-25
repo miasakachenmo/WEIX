@@ -7,10 +7,14 @@
 #include "sqlite3.h"
 #include "Users.h"
 using namespace std;
+//初始化函数!!!!
+int init();
 //SQL回调函数
 int callback(void *NotUsed, int argc, char **argv, char **azColName);
 //读取时使用的SQL查询参数
 int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName);
+//读取好友使用的SQL回调
+int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName);
 //让一个数字字符串自加1
 void String_Add(string *a);
 //打开默认数据库

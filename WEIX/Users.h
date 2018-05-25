@@ -42,8 +42,6 @@ public:
 	BaseUser();
 	//从数据库中初始化
 	BaseUser(char **Attrs);
-	//设置新名字
-	virtual int SetName(string NewName)=0;
 	//检查登陆
 	virtual int LoginCheck()=0;
 	//从群中被删除
@@ -52,7 +50,8 @@ public:
 	virtual int PermissionChange()=0;
 	//创建好友关系
 	int CreatFriendRelationship(string Target_Globalid);
-
+	//设置新名字
+	int SetName(string NewName);
 
 private:
 	string Global_id;//全局ID
@@ -70,8 +69,7 @@ public:
 	WeChatUser();
 	//从数据库读取微信用户
 	WeChatUser(char **Attrs);
-	//设置新名字
-	virtual int SetName(string NewName);
+
 	//检查登陆
 	virtual int LoginCheck();
 	//从群中被删除
@@ -87,8 +85,7 @@ public:
 	//三个存储的共享静态成员
 	QQUser();//QQ注册
 	QQUser(char **Attrs);
-	//设置新名字
-	virtual int SetName(string NewName);
+
 	//检查登陆
 	virtual int LoginCheck();
 	//从群中被删除

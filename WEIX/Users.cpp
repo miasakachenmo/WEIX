@@ -82,7 +82,13 @@ int BaseUser::CreatFriendRelationship(string Target_Globalid)
 	GlobalFriendMap[ProductCode].insert(pair<string, BaseUser*>(Target_Globalid, UserList[ProductCode][Target_Globalid]));
 	return 0;
 }
-
+int BaseUser::SetName(string NewName)
+{
+	Name = NewName;
+	string Sqlstr = "UPDATE USERS SET NAME = '" + NewName + "' where RECORDid = " + RECORDid + ";";
+	Exe(Sqlstr);
+	return 0;
+}
 
 
 //---------------------微信---------------------------------
@@ -100,14 +106,6 @@ WeChatUser::WeChatUser(char **Attrs):BaseUser(Attrs)
 {
 	ProductCode = 2;
 	id = Attrs[7];
-}
-//设置新名字
-int WeChatUser::SetName(string NewName)
-{
-	Name = NewName;
-	string Sqlstr = "UPDATE USERS SET NAME = '" + NewName + "' where RECORDid = " + RECORDid + ";";
-	Exe(Sqlstr);
-	return 0;
 }
 //检查登陆
 int WeChatUser::LoginCheck() { return 0; }
@@ -134,13 +132,6 @@ QQUser::QQUser(char **Attrs) :BaseUser(Attrs)
 {
 	ProductCode = 1;
 	id = Attrs[7];
-}
-//设置新名字
-int QQUser::SetName(string NewName) {
-	Name = NewName;
-	string Sqlstr = "UPDATE USERS SET NAME = '" + NewName + "' where RECORDid = " + RECORDid + ";";
-	Exe(Sqlstr);
-	return 0;
 }
 //检查登陆
 int QQUser::LoginCheck() { return 0; }
