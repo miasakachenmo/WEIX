@@ -2,6 +2,7 @@
 #include "Users.h"
 #include "Func.h"
 extern string LastRECORDid;
+extern map<int, map<string, BaseUser*> > UserList;
 
 
 //---------------------日期类-------------------------------
@@ -70,11 +71,11 @@ BaseUser::BaseUser(char **Attrs)//从数据库中初始化
 //创建好友关系
 int BaseUser::CreatFriendRelationship(string Target_Globalid)
 {
+	//UNDONE 检验好友关系是否重复创建
 	string SqlStr = "INSERT INTO FRIEND(FROMGB,TOGB,PRODUCTCODE)"\
 		"VALUES('" + Global_id + "', '" + Target_Globalid + "', '" + to_string(ProductCode) + "'); ";
 	Exe(SqlStr);
-	GlobalFriendMap.insert(pair<string,int>(Target_Globalid,ProductCode));
-	FriendMap.insert(pair<string, string>());
+	GlobalFriendMap[ProductCode].insert(pair<string, BaseUser*>(Target_Globalid, UserList[ProductCode][Target_Globalid]));
 	return 0;
 }
 

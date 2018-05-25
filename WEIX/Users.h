@@ -24,7 +24,7 @@ public:
 class BaseUser {
 public:
 
-	map<string, int> GlobalFriendMap;//全微X通用的好友列表,参数意义:<Globalid,ProductCode>
+	map<int,map<string, BaseUser*>> GlobalFriendMap;//全微X通用的好友列表,参数意义:<Globalid,ProductCode>
 	map<string, string> FriendMap;//单个用户的好友列表 参数意义: <Globalid,ProductCode>
 	map<string, int> GroupMap;//单个应用的群列表
 
