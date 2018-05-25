@@ -43,7 +43,6 @@ string Date::GetDateString()
 
 
 //---------------------基类---------------------------------
-//TODO 好友关系的创建,存储,和读取
 //通用部分的注册
 BaseUser::BaseUser()
 {
@@ -71,7 +70,12 @@ BaseUser::BaseUser(char **Attrs)//从数据库中初始化
 //创建好友关系
 int BaseUser::CreatFriendRelationship(string Target_Globalid)
 {
-	//UNDONE 检验好友关系是否重复创建
+	string ScureSqt = "SELECT * FROM FRIEND WHERE FROMGB='"+Global_id+"' AND TOGB='"+Target_Globalid+"';";
+	if (Exe(ScureSqt) == 1)
+	{
+		printf("好友关系已存在!\n");
+		return 0;
+	}
 	string SqlStr = "INSERT INTO FRIEND(FROMGB,TOGB,PRODUCTCODE)"\
 		"VALUES('" + Global_id + "', '" + Target_Globalid + "', '" + to_string(ProductCode) + "'); ";
 	Exe(SqlStr);

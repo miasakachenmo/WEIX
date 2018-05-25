@@ -9,8 +9,10 @@
 #include "Users.h"
 using namespace std;
 extern map<int , map<string, BaseUser*> > UserList;//参数说明:<ProductCode<Globalid,指针>>
+bool Called = false;
 //默认SQL回调函数,用于普通查询,插入
 int callback(void *NotUsed, int argc, char **argv, char **azColName) {
+	Called = true;
 	int i;
 	for (i = 0; i<argc; i++) {
 		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
@@ -26,7 +28,7 @@ int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName) {
 	{
 	case '1':
 	{
-		UserList[1].insert(pair<string, BaseUser*>(argv[1], (BaseUser*)(new QQUser(argv))));
+		UserList[1].insert(pair<string, BaseUser*>(argv[1], (BaseUser*)((new QQUser(argv)))));
 	}
 	case '2':
 	{
@@ -91,6 +93,7 @@ int Exe(string SqlStr,int (*callbackfunc)(void *, int , char **, char **))
 	int rc = 0;
 	do
 	{
+		Called = false;
 		rc = sqlite3_exec(db, SqlStr.c_str(), callbackfunc, 0, &zErrMsg);
 		if (rc != SQLITE_OK)//处理数据库打开失败的情况
 		{
@@ -100,7 +103,10 @@ int Exe(string SqlStr,int (*callbackfunc)(void *, int , char **, char **))
 		}
 	} while (rc != SQLITE_OK);
 	sqlite3_close(db);
-	return 0;
+	if (Called == false)
+		return 0;
+	else
+		return 1;
 }
 //创建用户菜单
 int CreatUserView()

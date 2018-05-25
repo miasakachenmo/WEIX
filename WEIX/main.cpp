@@ -13,14 +13,20 @@ string QQUser::LastQQid = "888";
 string LastRECORDid ="1";
 string WeChatUser::LastWeChatid = "999";
 map<int, map<string, BaseUser*> > UserList;
-//TODO friendlist的组织形式
+
+map<string, BaseUser*> QQUserList;
+map<string, BaseUser*> WeChatUserList;
 //TODO 初始化机制(生成Globalid Lastxxxid)
 int main()
 {
+	UserList.insert(pair<int, map<string, BaseUser*>>(1, QQUserList));
+	UserList.insert(pair<int, map<string, BaseUser*>>(2, WeChatUserList));
 	string SqlString = "SELECT * FROM USERS";
-	Exe(SqlString);
+	int a=Exe(SqlString);
 	Exe(SqlString, CreatCallBack);
-	system("cls");
+	BaseUser *b =UserList[1]["888"];
+	UserList[1]["888"]->CreatFriendRelationship("889");
+//	system("cls");
 	system("pause");
 	return 0;
 }
