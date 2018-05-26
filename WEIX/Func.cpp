@@ -5,22 +5,25 @@
 #include<vector>
 #include<conio.h>
 #include<map>
+#include<wchar.h>
+#include<Windows.h>
 #include "sqlite3.h"
 #include "Users.h"
 using namespace std;
-extern map<int , map<string, BaseUser*> > UserList;//参数说明:<ProductCode<Globalid,指针>>
+extern map<int , map<string, BaseUserZYS*> > UserList;//参数说明:<ProductCode<Globalid,指针>>
 bool Called = false;
-extern map<string, BaseUser*> QQUserList;
-extern map<string, BaseUser*> WeChatUserList;
+extern map<string, BaseUserZYS*> QQUserList;
+extern map<string, BaseUserZYS*> WeChatUserList;
 extern bool CanBack;
 extern vector<string> Products;
+
 //初始化函数!!!!
 int init()
 {
 	Products.push_back("QQ");
 	Products.push_back("微信");
-	UserList.insert(pair<int, map<string, BaseUser*>>(1, QQUserList));
-	UserList.insert(pair<int, map<string, BaseUser*>>(2, WeChatUserList));
+	UserList.insert(pair<int, map<string, BaseUserZYS*>>(1, QQUserList));
+	UserList.insert(pair<int, map<string, BaseUserZYS*>>(2, WeChatUserList));
 
 	//读取所有用户信息
 	string SqlString = "SELECT * FROM USERS";
@@ -44,33 +47,33 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 	printf("\n");
 	return 0;
 }
-//创建时使用的回调函数,用来初始化一个用户类
+//从文件读取时使用的回调函数,用来初始化一个用户类
 int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName) {
 	int i;
 	string a = argv[5];
-	if (BaseUser::LastGlobalid <= argv[1])//刷新LastGlobalid
+	if (BaseUserZYS::LastGlobalid <= argv[1])//刷新LastGlobalid
 	{
-		BaseUser::LastGlobalid = argv[1];
-		String_Add(&BaseUser::LastGlobalid);
+		BaseUserZYS::LastGlobalid = argv[1];
+		String_Add(&BaseUserZYS::LastGlobalid);
 	}
 		switch (argv[5][0])
 	{
 	case '1':
 	{
-		UserList[1].insert(pair<string, BaseUser*>(argv[1], (BaseUser*)((new QQUser(argv)))));
-		if (QQUser::LastQQid <= argv[7])//刷新id
+		UserList[1].insert(pair<string, BaseUserZYS*>(argv[1], (BaseUserZYS*)((new QQUserZYS(argv)))));
+		if (QQUserZYS::LastQQid <= argv[7])//刷新id
 		{
-			QQUser::LastQQid = argv[7];
-			String_Add(&QQUser::LastQQid);
+			QQUserZYS::LastQQid = argv[7];
+			String_Add(&QQUserZYS::LastQQid);
 		}
 	}
 	case '2':
 	{
-		UserList[2].insert(pair<string, BaseUser*>(argv[1], (BaseUser*)(new WeChatUser(argv))));
-		if (WeChatUser::LastWeChatid <= argv[7])//刷新id
+		UserList[2].insert(pair<string, BaseUserZYS*>(argv[1], (BaseUserZYS*)(new WeChatUserZYS(argv))));
+		if (WeChatUserZYS::LastWeChatid <= argv[7])//刷新id
 		{
-			WeChatUser::LastWeChatid = argv[7];
-			String_Add(&WeChatUser::LastWeChatid);
+			WeChatUserZYS::LastWeChatid = argv[7];
+			String_Add(&WeChatUserZYS::LastWeChatid);
 		}
 	}
 	default:
@@ -88,7 +91,7 @@ int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName)
 	string FromGB = argv[1];
 	string ToGB = argv[2];
 	int ProductCode = atoi(argv[3]);
-	UserList[ProductCode][FromGB]->CreatFriendRelationship(ToGB);
+	UserList[ProductCode][FromGB]->GlobalFriendMap[ProductCode].insert(pair<string, BaseUserZYS*>(ToGB, UserList[ProductCode][ToGB]));
 	printf("产品%d读取%s到%s的好友关系成功\n", ProductCode, FromGB.c_str(), ToGB.c_str());
 	return 0;
 }
@@ -170,18 +173,18 @@ void CreatUserView()
 		printf("1.创建一个QQ用户\n2.创建一个微信用户\n3.退出\n");
 		Option = GetOption(1, 3);
 		system("cls");
-		BaseUser *a;
+		BaseUserZYS *a;
 		
 		switch (Option)
 		{
 		case 1:
 		{
-			a = new QQUser;
+			a = new QQUserZYS;
 			break;
 		}
 		case 2:
 		{
-			a = new WeChatUser;
+			a = new WeChatUserZYS;
 			break;
 		}
 		case 3:
@@ -193,7 +196,7 @@ void CreatUserView()
 		}
 		}
 		a->PrintMessage();
-		UserList[a->ProductCode].insert(pair<string, BaseUser*>(a->Global_id, a));
+		UserList[a->ProductCode].insert(pair<string, BaseUserZYS*>(a->Global_id, a));
 		system("pause");
 		system("cls");
 	}
@@ -209,4 +212,37 @@ int GetOption(int Min, int Max)
 		Option = _getch();
 	} while (Option -'0'<Min  || Option-'0' > Max);
 	return Option - '0';
+}
+
+//GBK转UTF8(来源:CSDN)
+string GBKToUTF8(const char* strGBK)
+{
+	int len = MultiByteToWideChar(CP_ACP, 0, strGBK, -1, NULL, 0);
+	wchar_t* wstr = new wchar_t[len + 1];
+	memset(wstr, 0, len + 1);
+	MultiByteToWideChar(CP_ACP, 0, strGBK, -1, wstr, len);
+	len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
+	char* str = new char[len + 1];
+	memset(str, 0, len + 1);
+	WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL);
+	string strTemp = str;
+	if (wstr) delete[] wstr;
+	if (str) delete[] str;
+	return strTemp;
+}
+//UTF8转GBK(来源:CSDN)
+string UTF8ToGBK(const char* strUTF8)
+{
+	int len = MultiByteToWideChar(CP_UTF8, 0, strUTF8, -1, NULL, 0);
+	wchar_t* wszGBK = new wchar_t[len + 1];
+	memset(wszGBK, 0, len * 2 + 2);
+	MultiByteToWideChar(CP_UTF8, 0, strUTF8, -1, wszGBK, len);
+	len = WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, NULL, 0, NULL, NULL);
+	char* szGBK = new char[len + 1];
+	memset(szGBK, 0, len + 1);
+	WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, szGBK, len, NULL, NULL);
+	string strTemp(szGBK);
+	if (wszGBK) delete[] wszGBK;
+	if (szGBK) delete[] szGBK;
+	return strTemp;
 }

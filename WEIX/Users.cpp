@@ -2,17 +2,17 @@
 #include "Users.h"
 #include "Func.h"
 extern string LastRECORDid;
-extern map<int, map<string, BaseUser*> > UserList;
+extern map<int, map<string, BaseUserZYS*> > UserList;
 extern vector<string> Products;
 
 //---------------------日期类-------------------------------
-void Date::SetFromString(string a)
+void DateZYS::SetFromString(string a)
 {
 	Year = atoi(a.substr(0, 4).c_str());
 	Month = atoi(a.substr(4, 2).c_str());
 	Day = atoi(a.substr(6, 2).c_str());
 }
-void Date::SetBirthday()
+void DateZYS::SetBirthday()
 {
 	int *MonthDayLimit;
 	do
@@ -34,7 +34,7 @@ void Date::SetBirthday()
 			return;
 	} while (!(Year > 0 && Year <= 2018 && Month > 0 && Month <= 12 && Day>0 && Day <= MonthDayLimit[Month - 1]));
 }
-string Date::GetDateString()
+string DateZYS::GetDateString()
 {
 	char Res[9];
 	sprintf(Res, "%04d%02d%02d",Year, Month, Day);
@@ -44,7 +44,7 @@ string Date::GetDateString()
 
 //---------------------基类---------------------------------
 //通用部分的注册
-BaseUser::BaseUser()
+BaseUserZYS::BaseUserZYS()
 {
 	RECORDid = LastRECORDid;
 	String_Add(&LastRECORDid);
@@ -55,11 +55,11 @@ BaseUser::BaseUser()
 	Birthday.SetBirthday();
 	ReGistDate.SetBirthday();
 	string Sqlstr = "INSERT INTO USERS (RECORDid,GLOBAL_ID,NAME,BIRTHDAY,REGIST_DATE)"\
-		"VALUES('" + RECORDid + "','" + Global_id + "','" + Name + "','" + Birthday.GetDateString() + "','" + ReGistDate.GetDateString() + "');";
+		"VALUES('" + RECORDid + "','" + Global_id + "','" + GBKToUTF8(Name.c_str()) + "','" + Birthday.GetDateString() + "','" + ReGistDate.GetDateString() + "');";
 	Exe(Sqlstr);
 }
 //从文件读取通用部分
-BaseUser::BaseUser(char **Attrs)//从数据库中初始化
+BaseUserZYS::BaseUserZYS(char **Attrs)//从数据库中初始化
 {
 	RECORDid = Attrs[0];
 	Global_id = Attrs[1];
@@ -68,7 +68,7 @@ BaseUser::BaseUser(char **Attrs)//从数据库中初始化
 	ReGistDate.SetFromString(Attrs[4]);
 }
 //创建好友关系
-int BaseUser::CreatFriendRelationship(string Target_Globalid)
+int BaseUserZYS::CreatFriendRelationship(string Target_Globalid)
 {
 	string ScureSqt = "SELECT * FROM FRIEND WHERE FROMGB='"+Global_id+"' AND TOGB='"+Target_Globalid+"';";
 	if (Exe(ScureSqt) == 1)
@@ -79,11 +79,11 @@ int BaseUser::CreatFriendRelationship(string Target_Globalid)
 	string SqlStr = "INSERT INTO FRIEND(FROMGB,TOGB,PRODUCTCODE)"\
 		"VALUES('" + Global_id + "', '" + Target_Globalid + "', '" + to_string(ProductCode) + "'); ";
 	Exe(SqlStr);
-	GlobalFriendMap[ProductCode].insert(pair<string, BaseUser*>(Target_Globalid, UserList[ProductCode][Target_Globalid]));
+	GlobalFriendMap[ProductCode].insert(pair<string, BaseUserZYS*>(Target_Globalid, UserList[ProductCode][Target_Globalid]));
 	return 0;
 }
 //改名
-int BaseUser::SetName(string NewName)
+int BaseUserZYS::SetName(string NewName)
 {
 	Name = NewName;
 	string Sqlstr = "UPDATE USERS SET NAME = '" + NewName + "' where RECORDid = " + RECORDid + ";";
@@ -91,7 +91,7 @@ int BaseUser::SetName(string NewName)
 	return 0;
 }
 //打印基本信息
-int BaseUser::PrintMessage()
+int BaseUserZYS::PrintMessage()
 {
 	printf("%s用户\n昵称:%s\n账号:%s\n生日:%s\n注册日期:%s\n",Products[ProductCode-1].c_str(),Name.c_str(),id.c_str(),Birthday.GetDateString().c_str(),ReGistDate.GetDateString().c_str());
 	return 0;
@@ -100,48 +100,48 @@ int BaseUser::PrintMessage()
 
 //---------------------微信---------------------------------
 //微信用户注册
-WeChatUser::WeChatUser() :BaseUser()//QQ注册
+WeChatUserZYS::WeChatUserZYS() :BaseUserZYS()//QQ注册
 {
 	id = LastWeChatid;
 	String_Add(&id);
-	//UserList.insert(pair<string,QQUser*>(QQid, this));//加入QQ全局用户
+	//UserList.insert(pair<string,QQUserZYS*>(QQid, this));//加入QQ全局用户
 	string Sqlstr = "UPDATE USERS SET Id = '" + id + "' where RECORDid = " + RECORDid + ";";
 	Exe(Sqlstr);
 }
 //从本地读取微信用户
-WeChatUser::WeChatUser(char **Attrs):BaseUser(Attrs)
+WeChatUserZYS::WeChatUserZYS(char **Attrs):BaseUserZYS(Attrs)
 {
 	ProductCode = 2;
 	id = Attrs[7];
 }
 //检查登陆
-int WeChatUser::LoginCheck() { return 0; }
+int WeChatUserZYS::LoginCheck() { return 0; }
 //从群中被删除
-int WeChatUser::DeledFromGroup() { return 0; }
+int WeChatUserZYS::DeledFromGroup() { return 0; }
 //改变群权限
-int WeChatUser::PermissionChange() { return 0; }
+int WeChatUserZYS::PermissionChange() { return 0; }
 
 
 //---------------------QQ---------------------------------
 //QQ注册
-QQUser::QQUser() :BaseUser()
+QQUserZYS::QQUserZYS() :BaseUserZYS()
 {
 	ProductCode = 1;
 	id = LastQQid;
 	String_Add(&id);
-	//UserList.insert(pair<string,QQUser*>(QQid, this));//加入QQ全局用户
+	//UserList.insert(pair<string,QQUserZYS*>(QQid, this));//加入QQ全局用户
 	string Sqlstr = "UPDATE USERS SET Id = '" + id + "' where RECORDid = " + RECORDid + ";" + "UPDATE USERS SET PRODUCTCODE = '" + to_string(ProductCode) + "' where RECORDid = " + RECORDid + ";";
 	Exe(Sqlstr);
 }
 //从文件读取QQ用户
-QQUser::QQUser(char **Attrs) :BaseUser(Attrs)
+QQUserZYS::QQUserZYS(char **Attrs) :BaseUserZYS(Attrs)
 {
 	ProductCode = 1;
 	id = Attrs[7];
 }
 //检查登陆
-int QQUser::LoginCheck() { return 0; }
+int QQUserZYS::LoginCheck() { return 0; }
 //从群中被删除
-int QQUser::DeledFromGroup() { return 0; }
+int QQUserZYS::DeledFromGroup() { return 0; }
 //改变群权限
-int QQUser::PermissionChange() { return 0; }
+int QQUserZYS::PermissionChange() { return 0; }

@@ -7,19 +7,26 @@
 #include "Func.h"
 using namespace std;
 //全局/静态变量区
-int Date::MonthDay[12] = { 31,27,31,30,31,30,31,31,30,31,30,31 };
-int Date::LeapMonthDay[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
-string BaseUser::LastGlobalid = "888";
-string QQUser::LastQQid = "888";
+int DateZYS::MonthDay[12] = { 31,27,31,30,31,30,31,31,30,31,30,31 };
+int DateZYS::LeapMonthDay[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+bool CanBack;//菜单判断是否返回的逻辑
+string BaseUserZYS::LastGlobalid = "888";
+string QQUserZYS::LastQQid = "888";
 string LastRECORDid ="1";
-string WeChatUser::LastWeChatid = "999";
-map<int, map<string, BaseUser*> > UserList;
-map<string, BaseUser*> QQUserList;
-map<string, BaseUser*> WeChatUserList;
-BaseUser *CurrentUser;
-bool CanBack;
-vector<string> Products;
+string WeChatUserZYS::LastWeChatid = "999";
+map<int, map<string, BaseUserZYS*> > UserList;
+map<string, BaseUserZYS*> QQUserList;
+map<string, BaseUserZYS*> WeChatUserList;
+BaseUserZYS *CurrentUser;
+
+vector<string> Products;//产品号到产品名的映射
+
+
+
+
 //TODO 菜单们 优化使用逻辑 比如注册后显示全部信息
+//TODO 登陆菜单
+//TODO 修正日期类和生日类的混淆问题
 
 int main()
 {

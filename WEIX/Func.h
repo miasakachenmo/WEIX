@@ -25,3 +25,7 @@ int Exe(string SqlStr, int(*callbackfunc)(void *, int, char **, char **) = callb
 void CreatUserView();
 //得到一个符合范围的选项
 int GetOption(int Min,int Max);
+//GBK转UTF8(来源:CSDN)
+string GBKToUTF8(const char* strGBK);
+//UTF8转GBK(来源:CSDN)
+string UTF8ToGBK(const char* strUTF8);

@@ -9,7 +9,7 @@
 #include "sqlite3.h"
 #include "Func.h"
 using namespace std;
-class Date
+class DateZYS
 {
 public:
 	static int MonthDay[12];
@@ -21,11 +21,10 @@ public:
 	void SetBirthday();
 	string GetDateString();
 };
-class BaseUser {
+class BaseUserZYS {
 public:
 
-	map<int,map<string, BaseUser*>> GlobalFriendMap;//全微X通用的好友列表,参数意义:<Globalid,ProductCode>
-	map<string, string> FriendMap;//单个用户的好友列表 参数意义: <Globalid,ProductCode>
+	map<int,map<string, BaseUserZYS*>> GlobalFriendMap;//全微X通用的好友列表,参数意义:<Globalid,ProductCode>
 	map<string, int> GroupMap;//单个应用的群列表
 
 	static string LastGlobalid;//最后的全局id
@@ -33,15 +32,15 @@ public:
 	string Name;//昵称
 	string id;//分别到各个产品的号 比如QQ号
 	int ProductCode;//表示该用户存在的版本(此处主要用途是虚继承)
-	Date Birthday;
+	DateZYS Birthday;
 	
-	Date ReGistDate;
+	DateZYS ReGistDate;
 
 
 	//创建模式  ,  在基类中不执行文件操作 
-	BaseUser();
+	BaseUserZYS();
 	//从数据库中初始化
-	BaseUser(char **Attrs);
+	BaseUserZYS(char **Attrs);
 	//检查登陆
 	virtual int LoginCheck()=0;
 	//从群中被删除
@@ -59,9 +58,9 @@ public:
 	friend void CreatUserView();
 private:
 	string Global_id;//全局ID
-	Date SignDay;//注册日(用来计算X龄)
+	DateZYS SignDay;//注册日(用来计算X龄)
 };
-class WeChatUser :public virtual BaseUser
+class WeChatUserZYS :public virtual BaseUserZYS
 {
 public:
 	//static vector<int> FriendProductList;
@@ -70,9 +69,9 @@ public:
 	
 	
 	//微信注册
-	WeChatUser();
+	WeChatUserZYS();
 	//从数据库读取微信用户
-	WeChatUser(char **Attrs);
+	WeChatUserZYS(char **Attrs);
 
 	//检查登陆
 	virtual int LoginCheck();
@@ -81,14 +80,14 @@ public:
 	//改变群权限
 	virtual int PermissionChange();
 };
-class QQUser :public virtual BaseUser
+class QQUserZYS :public virtual BaseUserZYS
 {
 public:
 	//static vector<int> FriendProductList;
 	static string LastQQid;
 	//三个存储的共享静态成员
-	QQUser();//QQ注册
-	QQUser(char **Attrs);
+	QQUserZYS();//QQ注册
+	QQUserZYS(char **Attrs);
 
 	//检查登陆
 	virtual int LoginCheck();
