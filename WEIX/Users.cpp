@@ -3,7 +3,7 @@
 #include "Func.h"
 extern string LastRECORDid;
 extern map<int, map<string, BaseUser*> > UserList;
-
+extern vector<string> Products;
 
 //---------------------日期类-------------------------------
 void Date::SetFromString(string a)
@@ -82,11 +82,18 @@ int BaseUser::CreatFriendRelationship(string Target_Globalid)
 	GlobalFriendMap[ProductCode].insert(pair<string, BaseUser*>(Target_Globalid, UserList[ProductCode][Target_Globalid]));
 	return 0;
 }
+//改名
 int BaseUser::SetName(string NewName)
 {
 	Name = NewName;
 	string Sqlstr = "UPDATE USERS SET NAME = '" + NewName + "' where RECORDid = " + RECORDid + ";";
 	Exe(Sqlstr);
+	return 0;
+}
+//打印基本信息
+int BaseUser::PrintMessage()
+{
+	printf("%s用户\n昵称:%s\n账号:%s\n生日:%s\n注册日期:%s\n",Products[ProductCode-1].c_str(),Name.c_str(),id.c_str(),Birthday.GetDateString().c_str(),ReGistDate.GetDateString().c_str());
 	return 0;
 }
 
@@ -113,7 +120,6 @@ int WeChatUser::LoginCheck() { return 0; }
 int WeChatUser::DeledFromGroup() { return 0; }
 //改变群权限
 int WeChatUser::PermissionChange() { return 0; }
-
 
 
 //---------------------QQ---------------------------------

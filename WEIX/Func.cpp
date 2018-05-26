@@ -13,9 +13,12 @@ bool Called = false;
 extern map<string, BaseUser*> QQUserList;
 extern map<string, BaseUser*> WeChatUserList;
 extern bool CanBack;
+extern vector<string> Products;
 //初始化函数!!!!
 int init()
 {
+	Products.push_back("QQ");
+	Products.push_back("微信");
 	UserList.insert(pair<int, map<string, BaseUser*>>(1, QQUserList));
 	UserList.insert(pair<int, map<string, BaseUser*>>(2, WeChatUserList));
 
@@ -165,27 +168,45 @@ void CreatUserView()
 	{
 		char Option;
 		printf("1.创建一个QQ用户\n2.创建一个微信用户\n3.退出\n");
-		Option = _getch();
+		Option = GetOption(1, 3);
 		system("cls");
+		BaseUser *a;
+		
 		switch (Option)
 		{
-		case '1':
+		case 1:
 		{
-			QQUser a;
+			a = new QQUser;
 			break;
 		}
-		case '2':
+		case 2:
 		{
-			WeChatUser b;
+			a = new WeChatUser;
 			break;
 		}
-		case '3':
+		case 3:
 			goto there;
 		default:
+		{
+			a = NULL;
 			break;
 		}
+		}
+		a->PrintMessage();
+		UserList[a->ProductCode].insert(pair<string, BaseUser*>(a->Global_id, a));
+		system("pause");
 		system("cls");
 	}
 there:
 	return;
+}
+//得到一个符合范围的选项
+int GetOption(int Min, int Max)
+{
+	char Option;
+	do
+	{
+		Option = _getch();
+	} while (Option -'0'<Min  || Option-'0' > Max);
+	return Option - '0';
 }

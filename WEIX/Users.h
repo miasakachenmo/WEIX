@@ -48,11 +48,15 @@ public:
 	virtual int DeledFromGroup()=0;
 	//改变群权限
 	virtual int PermissionChange()=0;
+	//打印信息
+	int PrintMessage();
 	//创建好友关系
 	int CreatFriendRelationship(string Target_Globalid);
 	//设置新名字
 	int SetName(string NewName);
 
+	//友元函数
+	friend void CreatUserView();
 private:
 	string Global_id;//全局ID
 	Date SignDay;//注册日(用来计算X龄)
@@ -92,4 +96,5 @@ public:
 	virtual int DeledFromGroup();
 	//改变群权限
 	virtual int PermissionChange();
+	//打印信息
 };

@@ -18,6 +18,9 @@ map<string, BaseUser*> QQUserList;
 map<string, BaseUser*> WeChatUserList;
 BaseUser *CurrentUser;
 bool CanBack;
+vector<string> Products;
+//TODO 菜单们 优化使用逻辑 比如注册后显示全部信息
+
 int main()
 {
 	
@@ -29,16 +32,13 @@ int main()
 		Options.push_back(CreatUserView);
 		printf("1.用户创建\n2.用户登录\n");
 		char Option;
-		Option = _getch();
-		if (Option <= '2'&&Option >= '1')
+		Option = GetOption(1, 2);
+		CanBack = false;
+		Options[Option - 1]();
+		if (CanBack == true)
 		{
 			CanBack = false;
-			Options[Option - '0'-1]();
-			if (CanBack = true)
-			{
-				CanBack = false;
-				return 0;
-			}
+			return 0;
 		}
 	}
 

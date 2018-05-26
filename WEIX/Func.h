@@ -23,3 +23,5 @@ sqlite3* OpenDb();
 int Exe(string SqlStr, int(*callbackfunc)(void *, int, char **, char **) = callback);
 //创建用户菜单
 void CreatUserView();
+//得到一个符合范围的选项
+int GetOption(int Min,int Max);
