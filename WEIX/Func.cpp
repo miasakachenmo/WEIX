@@ -10,20 +10,17 @@
 #include "sqlite3.h"
 #include "Users.h"
 using namespace std;
-extern map<int , map<string, BaseUserZYS*> > UserList;//参数说明:<ProductCode<Globalid,指针>>
 bool Called = false;
-extern map<string, BaseUserZYS*> QQUserList;
-extern map<string, BaseUserZYS*> WeChatUserList;
 extern bool CanBack;
-extern vector<string> Products;
+
 
 //初始化函数!!!!
 int init()
 {
-	Products.push_back("QQ");
-	Products.push_back("微信");
-	UserList.insert(pair<int, map<string, BaseUserZYS*>>(1, QQUserList));
-	UserList.insert(pair<int, map<string, BaseUserZYS*>>(2, WeChatUserList));
+	GlobalDataZYS::Products.push_back("QQ");
+	GlobalDataZYS::Products.push_back("微信");
+	GlobalDataZYS::UserList.insert(pair<int, map<string, BaseUserZYS*>>(1, GlobalDataZYS::QQUserList));
+	GlobalDataZYS::UserList.insert(pair<int, map<string, BaseUserZYS*>>(2, GlobalDataZYS::WeChatUserList));
 
 	//读取所有用户信息
 	string SqlString = "SELECT * FROM USERS";
@@ -51,29 +48,29 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName) {
 	int i;
 	string a = argv[5];
-	if (BaseUserZYS::LastGlobalid <= argv[1])//刷新LastGlobalid
+	if (GlobalDataZYS::LastGlobalid <= argv[1])//刷新LastGlobalid
 	{
-		BaseUserZYS::LastGlobalid = argv[1];
-		String_Add(&BaseUserZYS::LastGlobalid);
+		GlobalDataZYS::LastGlobalid = argv[1];
+		String_Add(&GlobalDataZYS::LastGlobalid);
 	}
 		switch (argv[5][0])
 	{
 	case '1':
 	{
-		UserList[1].insert(pair<string, BaseUserZYS*>(argv[1], (BaseUserZYS*)((new QQUserZYS(argv)))));
-		if (QQUserZYS::LastQQid <= argv[7])//刷新id
+		GlobalDataZYS::UserList[1].insert(pair<string, BaseUserZYS*>(argv[1], (BaseUserZYS*)((new QQUserZYS(argv)))));
+		if (GlobalDataZYS::LastQQid <= argv[7])//刷新id
 		{
-			QQUserZYS::LastQQid = argv[7];
-			String_Add(&QQUserZYS::LastQQid);
+			GlobalDataZYS::LastQQid = argv[7];
+			String_Add(&GlobalDataZYS::LastQQid);
 		}
 	}
 	case '2':
 	{
-		UserList[2].insert(pair<string, BaseUserZYS*>(argv[1], (BaseUserZYS*)(new WeChatUserZYS(argv))));
-		if (WeChatUserZYS::LastWeChatid <= argv[7])//刷新id
+		GlobalDataZYS::UserList[2].insert(pair<string, BaseUserZYS*>(argv[1], (BaseUserZYS*)(new WeChatUserZYS(argv))));
+		if (GlobalDataZYS::LastWeChatid <= argv[7])//刷新id
 		{
-			WeChatUserZYS::LastWeChatid = argv[7];
-			String_Add(&WeChatUserZYS::LastWeChatid);
+			GlobalDataZYS::LastWeChatid = argv[7];
+			String_Add(&GlobalDataZYS::LastWeChatid);
 		}
 	}
 	default:
@@ -91,7 +88,7 @@ int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName)
 	string FromGB = argv[1];
 	string ToGB = argv[2];
 	int ProductCode = atoi(argv[3]);
-	UserList[ProductCode][FromGB]->Friends.GetRelationShip(UserList[ProductCode][FromGB], ToGB);
+	GlobalDataZYS::UserList[ProductCode][FromGB]->Friends.GetRelationShip(GlobalDataZYS::UserList[ProductCode][FromGB], ToGB);
 	printf("产品%d读取%s到%s的好友关系成功\n", ProductCode, FromGB.c_str(), ToGB.c_str());
 	return 0;
 }
@@ -195,7 +192,7 @@ void CreatUserView()
 		}
 		}
 		a->PrintMessage();
-		UserList[a->ProductCode].insert(pair<string, BaseUserZYS*>(a->Global_id, a));
+		GlobalDataZYS::UserList[a->ProductCode].insert(pair<string, BaseUserZYS*>(a->Global_id, a));
 		system("pause");
 		system("cls");
 	}

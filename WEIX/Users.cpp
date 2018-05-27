@@ -1,9 +1,9 @@
 #pragma once
 #include "Users.h"
 #include "Func.h"
-extern string LastRECORDid;
-extern map<int, map<string, BaseUserZYS*> > UserList;
-extern vector<string> Products;
+//extern string LastRECORDid;
+//extern map<int, map<string, BaseUserZYS*> > UserList;
+//extern vector<string> Products;
 
 //---------------------日期类-------------------------------
 DateZYS::DateZYS()
@@ -65,13 +65,13 @@ int FriendList::CreatRelationShip(BaseUserZYS* Master, string Target_Globalid)
 	Exe(SqlStr);
 
 	//写入内存
-	List[Master->ProductCode].insert(pair<string, string>(Target_Globalid, UserList[Master->ProductCode][Target_Globalid]->Name));
+	List[Master->ProductCode].insert(pair<string, string>(Target_Globalid, GlobalDataZYS::UserList[Master->ProductCode][Target_Globalid]->Name));
 	return 0;
 }
 int FriendList::GetRelationShip(BaseUserZYS* Master, string Target_Globalid)
 {
 	//写入内存
-	List[Master->ProductCode].insert(pair<string, string>(Target_Globalid, UserList[Master->ProductCode][Target_Globalid]->Name));
+	List[Master->ProductCode].insert(pair<string, string>(Target_Globalid, GlobalDataZYS::UserList[Master->ProductCode][Target_Globalid]->Name));
 	return 0;
 }
 int FriendList::ShowList(BaseUserZYS* Master, string Target_Globalid)
@@ -81,7 +81,7 @@ int FriendList::ShowList(BaseUserZYS* Master, string Target_Globalid)
 	printf("账号      密码");
 	for (iter = List[Master->ProductCode].begin(); iter != List[Master->ProductCode].end(); iter++)
 	{
-		printf("%s      %s\n",UserList[Master->ProductCode][iter->first]->id.c_str(),iter->second.c_str());
+		printf("%s      %s\n", GlobalDataZYS::UserList[Master->ProductCode][iter->first]->id.c_str(),iter->second.c_str());
 	}
 	return 0;
 }
@@ -90,10 +90,10 @@ int FriendList::ShowList(BaseUserZYS* Master, string Target_Globalid)
 //通用部分的注册
 BaseUserZYS::BaseUserZYS():Birthday("生日"),ReGistDate("注册日")
 {
-	RECORDid = LastRECORDid;
-	String_Add(&LastRECORDid);
-	Global_id = LastGlobalid;
-	String_Add(&LastGlobalid);
+	RECORDid = GlobalDataZYS::LastRECORDid;
+	String_Add(&GlobalDataZYS::LastRECORDid);
+	Global_id = GlobalDataZYS::LastGlobalid;
+	String_Add(&GlobalDataZYS::LastGlobalid);
 	cout << "输入昵称";
 	cin >> Name;
 	Birthday.SetBirthday();
@@ -123,7 +123,7 @@ int BaseUserZYS::CreatFriendRelationship(string Target_Globalid)
 	string SqlStr = "INSERT INTO FRIEND(FROMGB,TOGB,PRODUCTCODE)"\
 		"VALUES('" + Global_id + "', '" + Target_Globalid + "', '" + to_string(ProductCode) + "'); ";
 	Exe(SqlStr);
-	GlobalFriendMap[ProductCode].insert(pair<string, BaseUserZYS*>(Target_Globalid, UserList[ProductCode][Target_Globalid]));
+	GlobalFriendMap[ProductCode].insert(pair<string, BaseUserZYS*>(Target_Globalid, GlobalDataZYS::UserList[ProductCode][Target_Globalid]));
 	return 0;
 }
 //改名
@@ -137,7 +137,7 @@ int BaseUserZYS::SetName(string NewName)
 //打印基本信息
 int BaseUserZYS::PrintMessage()
 {
-	printf("%s用户\n昵称:%s\n账号:%s\n生日:%s\n注册日期:%s\n",Products[ProductCode-1].c_str(),Name.c_str(),id.c_str(),Birthday.GetDateString().c_str(),ReGistDate.GetDateString().c_str());
+	printf("%s用户\n昵称:%s\n账号:%s\n生日:%s\n注册日期:%s\n", GlobalDataZYS::Products[ProductCode-1].c_str(),Name.c_str(),id.c_str(),Birthday.GetDateString().c_str(),ReGistDate.GetDateString().c_str());
 	return 0;
 }
 //得到全局信息
@@ -151,7 +151,7 @@ string BaseUserZYS::GetGlobalid()
 //微信用户注册
 WeChatUserZYS::WeChatUserZYS() :BaseUserZYS()//QQ注册
 {
-	id = LastWeChatid;
+	id = GlobalDataZYS::LastWeChatid;
 	String_Add(&id);
 	//UserList.insert(pair<string,QQUserZYS*>(QQid, this));//加入QQ全局用户
 	string Sqlstr = "UPDATE USERS SET Id = '" + id + "' where RECORDid = " + RECORDid + ";";
@@ -176,7 +176,7 @@ int WeChatUserZYS::PermissionChange() { return 0; }
 QQUserZYS::QQUserZYS() :BaseUserZYS()
 {
 	ProductCode = 1;
-	id = LastQQid;
+	id = GlobalDataZYS::LastQQid;
 	String_Add(&id);
 	//UserList.insert(pair<string,QQUserZYS*>(QQid, this));//加入QQ全局用户
 	string Sqlstr = "UPDATE USERS SET Id = '" + id + "' where RECORDid = " + RECORDid + ";" + "UPDATE USERS SET PRODUCTCODE = '" + to_string(ProductCode) + "' where RECORDid = " + RECORDid + ";";

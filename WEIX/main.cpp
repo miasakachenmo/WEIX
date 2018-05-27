@@ -10,28 +10,20 @@ using namespace std;
 int DateZYS::MonthDay[12] = { 31,27,31,30,31,30,31,31,30,31,30,31 };
 int DateZYS::LeapMonthDay[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 bool CanBack;//菜单判断是否返回的逻辑
-string BaseUserZYS::LastGlobalid = "888";
-string QQUserZYS::LastQQid = "888";
-string LastRECORDid ="1";
-string WeChatUserZYS::LastWeChatid = "999";
+string GlobalDataZYS::LastGlobalid = "888";
+string GlobalDataZYS::LastQQid = "888";
+string GlobalDataZYS::LastRECORDid ="1";
+string GlobalDataZYS::LastWeChatid = "999";
+map<int, map<string, BaseUserZYS*> > GlobalDataZYS::UserList;
+map<string, BaseUserZYS*> GlobalDataZYS::QQUserList;
+map<string, BaseUserZYS*> GlobalDataZYS::WeChatUserList;
+vector<string> GlobalDataZYS::Products;//产品号到产品名的映射
 BaseUserZYS *CurrentUser;
-
-
-
-map<int, map<string, BaseUserZYS*> > UserList;
-map<string, BaseUserZYS*> QQUserList;
-map<string, BaseUserZYS*> WeChatUserList;
-
-
-vector<string> Products;//产品号到产品名的映射
-
 
 
 //TODO 把列表类抽象出来
 //TODO 菜单们 优化使用逻辑 比如注册后显示全部信息
 //TODO 登陆菜单
-//TODO 修正日期类和生日类的混淆问题
-//TODO 把好友管理的功能抽象出来
 //TODO GROUP类和好友类的合并?
 int main()
 {

@@ -30,6 +30,9 @@ public:
 };
 //接口函数
 class BaseUserZYS;
+
+
+
 class ListOpertion
 {
 public:
@@ -54,12 +57,21 @@ public:
 };
 
 
+
+
 class GlobalDataZYS
 {
+public:
+	static string LastRECORDid;
 	static string LastGlobalid;//最后的全局id
 	static string LastQQid;
 	static string LastWeChatid;
+	static vector<string> Products;
 	static map<int, map<string, BaseUserZYS*> > UserList;
+	static map<string, BaseUserZYS*> QQUserList;
+	static map<string, BaseUserZYS*> WeChatUserList;
+
+
 };
 
 class BaseUserZYS {
@@ -68,7 +80,6 @@ public:
 	map<int,map<string, BaseUserZYS*>> GlobalFriendMap;//全微X通用的好友列表,参数意义:<productcode,<globaoid>>
 	map<string, int> GroupMap;//单个应用的群列表
 
-	static string LastGlobalid;//最后的全局id
 	string RECORDid;//本用户在数据库对应的唯一id
 	string Name;//昵称
 	string id;//分别到各个产品的号 比如QQ号
@@ -106,7 +117,6 @@ class WeChatUserZYS :public virtual BaseUserZYS
 {
 public:
 	//static vector<int> FriendProductList;
-	static string LastWeChatid;
 	//三个存储的共享静态成员
 	
 	
@@ -126,7 +136,6 @@ class QQUserZYS :public virtual BaseUserZYS
 {
 public:
 	//static vector<int> FriendProductList;
-	static string LastQQid;
 	//三个存储的共享静态成员
 	QQUserZYS();//QQ注册
 	QQUserZYS(char **Attrs);
