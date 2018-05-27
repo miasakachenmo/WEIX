@@ -14,17 +14,58 @@ class DateZYS
 public:
 	static int MonthDay[12];
 	static int LeapMonthDay[12];
+	//用于判断日期是否正确的静态成员
+
 	int Year;
 	int Month;
 	int Day;
+
+	
+	string DateName;//日期的名字 比如生日 注册日
+	DateZYS();
+	DateZYS(string Name);
 	void SetFromString(string a);
 	void SetBirthday();
 	string GetDateString();
 };
+//接口函数
+class BaseUserZYS;
+class ListOpertion
+{
+public:
+	map<int, map<string, string>> List;
+	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid) = 0;
+	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid) = 0;
+	virtual int ShowList(BaseUserZYS* Master, string Target_Globalid) = 0;
+};
+class FriendList :public virtual ListOpertion
+{
+public:
+	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid);
+	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid);
+	virtual int ShowList(BaseUserZYS* Master, string Target_Globalid);
+};
+class GroupList :public virtual ListOpertion
+{
+public:
+	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid);
+	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid);
+	virtual int ShowList(BaseUserZYS* Master, string Target_Globalid);
+};
+
+
+class GlobalDataZYS
+{
+	static string LastGlobalid;//最后的全局id
+	static string LastQQid;
+	static string LastWeChatid;
+	static map<int, map<string, BaseUserZYS*> > UserList;
+};
+
 class BaseUserZYS {
 public:
 
-	map<int,map<string, BaseUserZYS*>> GlobalFriendMap;//全微X通用的好友列表,参数意义:<Globalid,ProductCode>
+	map<int,map<string, BaseUserZYS*>> GlobalFriendMap;//全微X通用的好友列表,参数意义:<productcode,<globaoid>>
 	map<string, int> GroupMap;//单个应用的群列表
 
 	static string LastGlobalid;//最后的全局id
@@ -33,9 +74,9 @@ public:
 	string id;//分别到各个产品的号 比如QQ号
 	int ProductCode;//表示该用户存在的版本(此处主要用途是虚继承)
 	DateZYS Birthday;
-	
 	DateZYS ReGistDate;
 
+	FriendList Friends;
 
 	//创建模式  ,  在基类中不执行文件操作 
 	BaseUserZYS();
@@ -53,7 +94,8 @@ public:
 	int CreatFriendRelationship(string Target_Globalid);
 	//设置新名字
 	int SetName(string NewName);
-
+	//得到全局id(对全局id的保护)
+	string GetGlobalid();
 	//友元函数
 	friend void CreatUserView();
 private:
@@ -95,5 +137,4 @@ public:
 	virtual int DeledFromGroup();
 	//改变群权限
 	virtual int PermissionChange();
-	//打印信息
 };

@@ -91,11 +91,10 @@ int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName)
 	string FromGB = argv[1];
 	string ToGB = argv[2];
 	int ProductCode = atoi(argv[3]);
-	UserList[ProductCode][FromGB]->GlobalFriendMap[ProductCode].insert(pair<string, BaseUserZYS*>(ToGB, UserList[ProductCode][ToGB]));
+	UserList[ProductCode][FromGB]->Friends.GetRelationShip(UserList[ProductCode][FromGB], ToGB);
 	printf("产品%d读取%s到%s的好友关系成功\n", ProductCode, FromGB.c_str(), ToGB.c_str());
 	return 0;
 }
-
 
 //功能函数----------------------------------------------------------------------------------------------
 //让一个数字字符串自加1
