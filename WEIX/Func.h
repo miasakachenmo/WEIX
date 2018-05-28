@@ -15,17 +15,32 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName);
 int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName);
 //读取好友使用的SQL回调
 int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName);
+
+
+
 //让一个数字字符串自加1
 void String_Add(string *a);
 //打开默认数据库
 sqlite3* OpenDb();
 //执行指定SQLITE语句
 int Exe(string SqlStr, int(*callbackfunc)(void *, int, char **, char **) = callback);
-//创建用户菜单
-void CreatUserView();
+
 //得到一个符合范围的选项
 int GetOption(int Min,int Max);
+//输入密码提供的不显示效果
+string InputPwd();
+
 //GBK转UTF8(来源:CSDN)
 string GBKToUTF8(const char* strGBK);
 //UTF8转GBK(来源:CSDN)
 string UTF8ToGBK(const char* strUTF8);
+
+
+//菜单封装
+
+//创建用户菜单
+void CreatUserView();
+//登陆菜单
+void LoginView();
+
+//void UserView(BaseUserZYS *User);

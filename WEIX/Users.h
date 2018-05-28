@@ -70,8 +70,6 @@ public:
 	static map<int, map<string, BaseUserZYS*> > UserList;
 	static map<string, BaseUserZYS*> QQUserList;
 	static map<string, BaseUserZYS*> WeChatUserList;
-
-
 };
 
 class BaseUserZYS {
@@ -83,6 +81,7 @@ public:
 	string RECORDid;//本用户在数据库对应的唯一id
 	string Name;//昵称
 	string id;//分别到各个产品的号 比如QQ号
+	
 	int ProductCode;//表示该用户存在的版本(此处主要用途是虚继承)
 	DateZYS Birthday;
 	DateZYS ReGistDate;
@@ -94,7 +93,7 @@ public:
 	//从数据库中初始化
 	BaseUserZYS(char **Attrs);
 	//检查登陆
-	virtual int LoginCheck()=0;
+	virtual bool LoginCheck()=0;
 	//从群中被删除
 	virtual int DeledFromGroup()=0;
 	//改变群权限
@@ -105,12 +104,17 @@ public:
 	int CreatFriendRelationship(string Target_Globalid);
 	//设置新名字
 	int SetName(string NewName);
+	//设置密码
+	string SetPwd();
+	//得到密码
+	bool CheckPwd(string InputPwd);
 	//得到全局id(对全局id的保护)
 	string GetGlobalid();
 	//友元函数
 	friend void CreatUserView();
 private:
 	string Global_id;//全局ID
+	string Pwd;
 	DateZYS SignDay;//注册日(用来计算X龄)
 };
 class WeChatUserZYS :public virtual BaseUserZYS
@@ -126,7 +130,7 @@ public:
 	WeChatUserZYS(char **Attrs);
 
 	//检查登陆
-	virtual int LoginCheck();
+	virtual bool LoginCheck();
 	//从群中被删除
 	virtual int DeledFromGroup();
 	//改变群权限
@@ -141,7 +145,7 @@ public:
 	QQUserZYS(char **Attrs);
 
 	//检查登陆
-	virtual int LoginCheck();
+	virtual bool LoginCheck();
 	//从群中被删除
 	virtual int DeledFromGroup();
 	//改变群权限

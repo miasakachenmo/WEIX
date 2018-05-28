@@ -86,20 +86,26 @@ int FriendList::ShowList(BaseUserZYS* Master, string Target_Globalid)
 	return 0;
 }
 
+
+
+
+#pragma region 产品
 //---------------------基类---------------------------------
 //通用部分的注册
-BaseUserZYS::BaseUserZYS():Birthday("生日"),ReGistDate("注册日")
+BaseUserZYS::BaseUserZYS() :Birthday("生日"), ReGistDate("注册日")
 {
 	RECORDid = GlobalDataZYS::LastRECORDid;
 	String_Add(&GlobalDataZYS::LastRECORDid);
 	Global_id = GlobalDataZYS::LastGlobalid;
 	String_Add(&GlobalDataZYS::LastGlobalid);
-	cout << "输入昵称";
+	cout << "输入昵称\n";
 	cin >> Name;
 	Birthday.SetBirthday();
 	ReGistDate.SetBirthday();
-	string Sqlstr = "INSERT INTO USERS (RECORDid,GLOBAL_ID,NAME,BIRTHDAY,REGIST_DATE)"\
-		"VALUES('" + RECORDid + "','" + Global_id + "','" + GBKToUTF8(Name.c_str()) + "','" + Birthday.GetDateString() + "','" + ReGistDate.GetDateString() + "');";
+	cout << "输入密码\n";
+	Pwd = SetPwd();
+	string Sqlstr = "INSERT INTO USERS (RECORDid,GLOBAL_ID,NAME,BIRTHDAY,REGIST_DATE,PWD)"\
+		"VALUES('" + RECORDid + "','" + Global_id + "','" + GBKToUTF8(Name.c_str()) + "','" + Birthday.GetDateString() + "','" + ReGistDate.GetDateString() + "','" + Pwd + "');";
 	Exe(Sqlstr);
 }
 //从文件读取通用部分
@@ -110,11 +116,12 @@ BaseUserZYS::BaseUserZYS(char **Attrs) :Birthday("生日"), ReGistDate("注册日") /
 	Name = Attrs[2];
 	Birthday.SetFromString(Attrs[3]);
 	ReGistDate.SetFromString(Attrs[4]);
+	Pwd = Attrs[7];
 }
 //创建好友关系
 int BaseUserZYS::CreatFriendRelationship(string Target_Globalid)
 {
-	string ScureSqt = "SELECT * FROM FRIEND WHERE FROMGB='"+Global_id+"' AND TOGB='"+Target_Globalid+"';";
+	string ScureSqt = "SELECT * FROM FRIEND WHERE FROMGB='" + Global_id + "' AND TOGB='" + Target_Globalid + "';";
 	if (Exe(ScureSqt) == 1)
 	{
 		printf("好友关系已存在!\n");
@@ -137,7 +144,7 @@ int BaseUserZYS::SetName(string NewName)
 //打印基本信息
 int BaseUserZYS::PrintMessage()
 {
-	printf("%s用户\n昵称:%s\n账号:%s\n生日:%s\n注册日期:%s\n", GlobalDataZYS::Products[ProductCode-1].c_str(),Name.c_str(),id.c_str(),Birthday.GetDateString().c_str(),ReGistDate.GetDateString().c_str());
+	printf("%s用户\n昵称:%s\n账号:%s\n生日:%s\n注册日期:%s\n", GlobalDataZYS::Products[ProductCode - 1].c_str(), Name.c_str(), id.c_str(), Birthday.GetDateString().c_str(), ReGistDate.GetDateString().c_str());
 	return 0;
 }
 //得到全局信息
@@ -145,8 +152,33 @@ string BaseUserZYS::GetGlobalid()
 {
 	return Global_id;
 }
+//设置密码
+string BaseUserZYS::SetPwd()
+{
+	Pwd = "";
+	do
+	{
+		cout << "输入密码\n";
+		Pwd = InputPwd();//算法决定PWD不会为空
+		cout << "确认密码\n";
+		if (Pwd != InputPwd())//确认密码
+		{
+			cout << "再次输入的密码不正确,重新输入!";
+			continue;
+		}
+	} while (false);
+	return Pwd;
+}
+//验证密码
+bool BaseUserZYS::CheckPwd(string InputPwd)
+{
+	if (InputPwd == Pwd)
+		return true;
+	else
+		return false;
+}
 
-
+//UNDONE QQ和微信的登陆检测模块
 //---------------------微信---------------------------------
 //微信用户注册
 WeChatUserZYS::WeChatUserZYS() :BaseUserZYS()//QQ注册
@@ -158,13 +190,13 @@ WeChatUserZYS::WeChatUserZYS() :BaseUserZYS()//QQ注册
 	Exe(Sqlstr);
 }
 //从本地读取微信用户
-WeChatUserZYS::WeChatUserZYS(char **Attrs):BaseUserZYS(Attrs)
+WeChatUserZYS::WeChatUserZYS(char **Attrs) :BaseUserZYS(Attrs)
 {
 	ProductCode = 2;
 	id = Attrs[7];
 }
 //检查登陆
-int WeChatUserZYS::LoginCheck() { return 0; }
+bool WeChatUserZYS::LoginCheck() { return 1; }
 //从群中被删除
 int WeChatUserZYS::DeledFromGroup() { return 0; }
 //改变群权限
@@ -189,8 +221,10 @@ QQUserZYS::QQUserZYS(char **Attrs) :BaseUserZYS(Attrs)
 	id = Attrs[7];
 }
 //检查登陆
-int QQUserZYS::LoginCheck() { return 0; }
+bool QQUserZYS::LoginCheck() { return true; }
 //从群中被删除
 int QQUserZYS::DeledFromGroup() { return 0; }
 //改变群权限
 int QQUserZYS::PermissionChange() { return 0; }
+#pragma endregion
+

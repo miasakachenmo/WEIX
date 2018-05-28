@@ -93,6 +93,7 @@ int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName)
 	return 0;
 }
 
+
 //功能函数----------------------------------------------------------------------------------------------
 //让一个数字字符串自加1
 void String_Add(string *a)
@@ -209,6 +210,29 @@ int GetOption(int Min, int Max)
 	} while (Option -'0'<Min  || Option-'0' > Max);
 	return Option - '0';
 }
+//输入密码提供的不显示效果
+string InputPwd()
+{
+	string CorrectChars = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{}[];':\"<>,./?\\!@#$%^&*()-_=+`~";
+	string Pwd = "";
+	do
+	{
+		char temp = _getch();
+		if (temp == 13)//回车
+		{
+			if (Pwd == "")
+			{
+				cout << "不能为空!请重新输入\n";
+				continue;
+			}
+			break;
+		}
+		if (CorrectChars.find(temp) == -1)
+			continue;
+		Pwd += temp;
+	} while (true);
+	return Pwd;
+}
 
 //GBK转UTF8(来源:CSDN)
 string GBKToUTF8(const char* strGBK)
@@ -242,3 +266,61 @@ string UTF8ToGBK(const char* strUTF8)
 	if (szGBK) delete[] szGBK;
 	return strTemp;
 }
+
+
+//菜单实现
+
+//登陆菜单
+void LoginView()
+{
+	system("cls");
+	printf("选择你想登陆的产品\n");
+	int i = 0;
+	int ProductCode;
+	string Account="";
+	for (; i <(int)GlobalDataZYS::Products.size(); i++)
+	{
+		printf("%d.  %s\n", i+1,GlobalDataZYS::Products[i].c_str());
+	}
+	printf("%d.  退出\n",i);
+	char Option = GetOption(0, GlobalDataZYS::Products.size());
+	if (Option == i)
+		return;
+	else
+	{
+		ProductCode = Option;
+	}
+	do
+	{
+		system("cls");
+
+		printf("输入账号\n");
+		cin >> Account;
+		//匿名函数
+		auto iterfind = find_if(GlobalDataZYS::UserList[ProductCode].begin(), GlobalDataZYS::UserList[ProductCode].end(), [Account](pair<string,BaseUserZYS*> user) {
+			if (user.second->id == Account)
+				return true;
+		});
+		if (iterfind == GlobalDataZYS::UserList[ProductCode].end())
+		{
+			printf("账号错误!请重新输入\n");
+			continue;
+		}
+		else
+		{
+			if (iterfind->second->LoginCheck())
+			{
+				printf("登陆成功!!!!!");
+				system("pause");
+			}
+		}
+	} while (true);
+}
+
+//用户登入后菜单
+/*void UserView(BaseUserZYS *User)
+{
+	printf("欢迎使用 %s用户%s\n", GlobalDataZYS::Products[User->ProductCode].c_str(), User->Name.c_str());
+	printf("");
+	return;
+}*/
