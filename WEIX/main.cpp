@@ -32,6 +32,9 @@ BaseUserZYS *CurrentUser;
 int main()
 {
 	init();
+	GlobalDataZYS::UserList[1]["888"]->id = "123";
+	GlobalDataZYS::UserList[1]["888"]->OnUpDate();
+
 	system("cls");	
 	while (true)
 	{

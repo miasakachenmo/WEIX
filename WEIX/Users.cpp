@@ -86,7 +86,18 @@ int FriendList::ShowList(BaseUserZYS* Master, string Target_Globalid)
 	return 0;
 }
 
-
+//强弱绑定类-----------------------------------------------------------------------------------
+int WeakBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
+{
+	Master->Global_id = Taget_Globalid;
+	return 0;
+}
+int StrongBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
+{
+	Master->Global_id = Taget_Globalid;
+	Master->id = GlobalDataZYS::UserList[1][Taget_Globalid]->id;
+	return 0;
+ }
 
 
 #pragma region 产品
@@ -177,16 +188,28 @@ bool BaseUserZYS::CheckPwd(string InputPwd)
 	else
 		return false;
 }
+//更新数据库
+int BaseUserZYS::OnUpDate()
+{
+	string SqlStr;
+	char Buffer[200];
+	sprintf(Buffer, "UPDATE USERS SET GLOBAL_ID='%s',NAME='%s',BIRTHDAY='%s',REGIST_DATE='%s',Id='%s',"
+		"PWD='%s'  WHERE Recordid=%s;",Global_id.c_str(),Name.c_str(),(Birthday.GetDateString()).c_str(),(ReGistDate.GetDateString()).c_str(),id.c_str(),Pwd.c_str(),RECORDid.c_str());
+	SqlStr= Buffer;
+	Exe(SqlStr);
+	return 0;
+}
 
 //UNDONE QQ和微信的登陆检测模块
 //---------------------微信---------------------------------
 //微信用户注册
 WeChatUserZYS::WeChatUserZYS() :BaseUserZYS()//QQ注册
 {
+	ProductCode = 2;
 	id = GlobalDataZYS::LastWeChatid;
 	String_Add(&id);
 	//UserList.insert(pair<string,QQUserZYS*>(QQid, this));//加入QQ全局用户
-	string Sqlstr = "UPDATE USERS SET Id = '" + id + "' where RECORDid = " + RECORDid + ";";
+	string Sqlstr = "UPDATE USERS SET Id = '" + id + "' where RECORDid = " + RECORDid + ";" + "UPDATE USERS SET PRODUCTCODE = '" + to_string(ProductCode) + "' where RECORDid = " + RECORDid + ";";
 	Exe(Sqlstr);
 }
 //从本地读取微信用户

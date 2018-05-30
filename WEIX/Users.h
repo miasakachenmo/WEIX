@@ -72,6 +72,15 @@ public:
 	static map<string, BaseUserZYS*> WeChatUserList;
 };
 
+class WeakBindWithQQUserZYS
+{
+	int BindTo(BaseUserZYS* Master, string Taget_Globalid);
+};
+class StrongBindWithQQUserZYS
+{
+	int BindTo(BaseUserZYS* Master, string Taget_Globalid);
+};
+
 class BaseUserZYS {
 public:
 
@@ -110,13 +119,19 @@ public:
 	bool CheckPwd(string InputPwd);
 	//得到全局id(对全局id的保护)
 	string GetGlobalid();
+	//数据更新时
+	int OnUpDate();
 	//友元函数
 	friend void CreatUserView();
+	
+	friend class StrongBindWithQQUserZYS;
+	friend class WeakBindWithQQUserZYS;
 private:
 	string Global_id;//全局ID
 	string Pwd;
 	DateZYS SignDay;//注册日(用来计算X龄)
 };
+
 class WeChatUserZYS :public virtual BaseUserZYS
 {
 public:
