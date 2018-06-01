@@ -87,12 +87,12 @@ int FriendList::ShowList(BaseUserZYS* Master, string Target_Globalid)
 }
 
 //强弱绑定类-----------------------------------------------------------------------------------
-int WeakBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
+int IWeakBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
 {
 	Master->Global_id = Taget_Globalid;
 	return 0;
 }
-int StrongBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
+int IStrongBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
 {
 	Master->Global_id = Taget_Globalid;
 	Master->id = GlobalDataZYS::UserList[1][Taget_Globalid]->id;
@@ -250,4 +250,3 @@ int QQUserZYS::DeledFromGroup() { return 0; }
 //改变群权限
 int QQUserZYS::PermissionChange() { return 0; }
 #pragma endregion
-
