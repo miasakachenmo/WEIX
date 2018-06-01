@@ -40,11 +40,11 @@ string UTF8ToGBK(const char* strUTF8);
 
 #pragma region 菜单封装
 //创建用户菜单
-void CreatUserView();
+int CreatUserView();
 //登陆菜单
-bool LoginView(int ProductCode = 0);
+int LoginView(int ProductCode = 0);
 //选择产品菜单
-int ChooseProductView()
+int ChooseProductView();
 #pragma endregion
 
 

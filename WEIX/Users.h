@@ -6,6 +6,7 @@
 #include<vector>
 #include<map>
 #include<sstream>
+#include<functional>
 #include "sqlite3.h"
 #include "Func.h"
 using namespace std;
@@ -53,21 +54,21 @@ public:
 	map<int, map<string, string>> List;
 	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid) = 0;
 	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid) = 0;
-	virtual int ShowList(BaseUserZYS* Master, string Target_Globalid) = 0;
+	virtual int ShowList(BaseUserZYS* Master) = 0;
 };
 class FriendList :public virtual ListOpertion
 {
 public:
 	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid);
 	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid);
-	virtual int ShowList(BaseUserZYS* Master, string Target_Globalid);
+	virtual int ShowList(BaseUserZYS* Master);
 };
 class GroupList :public virtual ListOpertion
 {
 public:
 	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid);
 	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid);
-	virtual int ShowList(BaseUserZYS* Master, string Target_Globalid);
+	virtual int ShowList(BaseUserZYS* Master);
 };
 
 
@@ -91,8 +92,19 @@ public:
 };
 #pragma endregion
 
+#pragma region 菜单操作接口
+class MenuInterface
+{
+public:
+	map<string, function<int()>> Menu;//操作名称,函数
+	void AddFunc(string FooName,function<int()> Foo);//添加函数
+	virtual void CreatMenuMap()=0;
+	void ShowFoos();
+};
+#pragma endregion
+
 #pragma region 用户
-class BaseUserZYS :virtual public	 IBindWithQQUserZYS
+class BaseUserZYS :virtual public IBindWithQQUserZYS,virtual public MenuInterface
 {
 public:
 
@@ -126,7 +138,7 @@ public:
 	int CreatFriendRelationship(string Target_Globalid);
 	//设置新名字
 	int SetName(string NewName);
-	//设置密码
+	//设置密码,返回值为新密码,返回时已经设置好了
 	string SetPwd();
 	//得到密码
 	bool CheckPwd(string InputPwd);
@@ -134,8 +146,12 @@ public:
 	string GetGlobalid();
 	//数据更新时
 	int OnUpDate();
+	
+	//接口函数
+	virtual void CreatMenuMap();
+
 	//友元函数
-	friend void CreatUserView();
+	friend int CreatUserView();
 
 	friend class IStrongBindWithQQUserZYS;
 	friend class IWeakBindWithQQUserZYS;
@@ -163,6 +179,7 @@ public:
 	virtual int DeledFromGroup();
 	//改变群权限
 	virtual int PermissionChange();
+	
 };
 class QQUserZYS :public virtual BaseUserZYS,public virtual IStrongBindWithQQUserZYS
 {
@@ -178,5 +195,6 @@ public:
 	virtual int DeledFromGroup();
 	//改变群权限
 	virtual int PermissionChange();
+	//绑定
 };
 #pragma endregion

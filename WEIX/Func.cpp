@@ -229,11 +229,10 @@ string UTF8ToGBK(const char* strUTF8)
 
 #pragma region 菜单
 //登陆菜单
-bool LoginView(int ProductCode=0)
+int LoginView(int ProductCode)
 {
 	system("cls");
 	int i = GlobalDataZYS::Products.size()+1;
-	int ProductCode;
 	string Account = "";
 	
 	if (ProductCode == 0)
@@ -241,7 +240,7 @@ bool LoginView(int ProductCode=0)
 		printf("选择你想登陆的产品\n");
 		char Option = ChooseProductView();
 		if (Option == i)//选择退出
-			return false;
+			return 0;
 		else//选择到了产品
 		{
 			ProductCode = Option;
@@ -255,13 +254,17 @@ bool LoginView(int ProductCode=0)
 		//匿名函数 作用是寻找对应id的账号
 		auto iterfind = find_if(GlobalDataZYS::UserList[ProductCode].begin(), GlobalDataZYS::UserList[ProductCode].end(), [Account](pair<string, BaseUserZYS*> user) {
 			if (user.second->id == Account)
-				return true;
+				return 1;
+			else
+			{
+				return 0;
+			}
 		});
 		if (iterfind == GlobalDataZYS::UserList[ProductCode].end())
 		{
 			printf("账号错误!请按1重新输入或者按2退出\n");
 			if (GetOption(1, 2) == 2)
-				return false;
+				return 0;
 			continue;
 		}
 		else
@@ -269,13 +272,13 @@ bool LoginView(int ProductCode=0)
 			if (iterfind->second->LoginCheck())
 			{
 				printf("登陆成功!!!!!");
-				return true;
+				return 1;
 			}
 		}
 	} while (true);
 }
 //创建用户菜单
-void CreatUserView()
+int CreatUserView()
 {
 	system("cls");
 	while (1)
@@ -312,17 +315,15 @@ void CreatUserView()
 		system("cls");
 	}
 there:
-	return;
+	return 0;
 }
 //选择产品菜单
 int ChooseProductView()
 {
 	int i;
-	for (i = 0; i < GlobalDataZYS::Products.size(); i++)
-		printf("%d %s\n", i + 1, GlobalDataZYS::Products[i]);
+	for (i = 0; i < (int)GlobalDataZYS::Products.size(); i++)
+		printf("%d %s\n", i + 1, GlobalDataZYS::Products[i].c_str());
 	printf("%d.  退出\n", i);
 	return GetOption(1, i);
 }
 #pragma endregion
-
-

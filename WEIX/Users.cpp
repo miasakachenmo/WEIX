@@ -1,10 +1,5 @@
 #pragma once
 #include "Users.h"
-#include "Func.h"
-//extern string LastRECORDid;
-//extern map<int, map<string, BaseUserZYS*> > UserList;
-//extern vector<string> Products;
-
 //---------------------日期类-------------------------------
 DateZYS::DateZYS()
 {
@@ -74,7 +69,7 @@ int FriendList::GetRelationShip(BaseUserZYS* Master, string Target_Globalid)
 	List[Master->ProductCode].insert(pair<string, string>(Target_Globalid, GlobalDataZYS::UserList[Master->ProductCode][Target_Globalid]->Name));
 	return 0;
 }
-int FriendList::ShowList(BaseUserZYS* Master, string Target_Globalid)
+int FriendList::ShowList(BaseUserZYS* Master)
 {
 	//UNDONE SHOWLIST
 	map<string, string>::iterator iter;
@@ -89,13 +84,14 @@ int FriendList::ShowList(BaseUserZYS* Master, string Target_Globalid)
 //强弱绑定类-----------------------------------------------------------------------------------
 int IWeakBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
 {
-	Master->Global_id = Taget_Globalid;
+	//Master->Global_id = Taget_Globalid;
 	return 0;
 }
 int IStrongBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
 {
-	Master->Global_id = Taget_Globalid;
-	Master->id = GlobalDataZYS::UserList[1][Taget_Globalid]->id;
+	cout << "strongbindqq" << endl;
+	//Master->Global_id = Taget_Globalid;
+	//Master->id = GlobalDataZYS::UserList[1][Taget_Globalid]->id;
 	return 0;
  }
 
@@ -200,6 +196,35 @@ int BaseUserZYS::OnUpDate()
 	return 0;
 }
 
+void BaseUserZYS::CreatMenuMap()
+{
+	//AddFunc("查看基本信息", this->PrintMessage);
+	AddFunc("修改名字", [this]() { 
+		system("cls");
+		string NewName;
+		cout << "输入新名字" << endl;
+		cin >> NewName;
+		SetName(NewName);
+		return 0; });
+	AddFunc("好友列表", [this]() {
+		Friends.ShowList(this);
+		return 0; });
+	AddFunc("修改密码", [this]() {
+		SetPwd();
+		return 0;
+	});
+	AddFunc("加好友", [this]() {
+		system("cls");
+		string Target;
+		cout << "输入对方ID"<<endl;
+		cin >> Target;
+		Friends.CreatRelationShip(this, Target);
+		return 0;
+	
+	});
+}
+
+
 //UNDONE QQ和微信的登陆检测模块
 //---------------------微信---------------------------------
 //微信用户注册
@@ -226,6 +251,8 @@ int WeChatUserZYS::DeledFromGroup() { return 0; }
 int WeChatUserZYS::PermissionChange() { return 0; }
 
 
+
+
 //---------------------QQ---------------------------------
 //QQ注册
 QQUserZYS::QQUserZYS() :BaseUserZYS()
@@ -250,3 +277,18 @@ int QQUserZYS::DeledFromGroup() { return 0; }
 //改变群权限
 int QQUserZYS::PermissionChange() { return 0; }
 #pragma endregion
+
+void MenuInterface::AddFunc(string FooName, function<int()> Foo)
+{
+	Menu.insert(pair<string, function<int()>>(FooName, Foo));
+	return;
+}
+
+void MenuInterface::ShowFoos()
+{
+	map<string, function<int()>>::iterator iter;
+	int i = 1;
+	for (iter = Menu.begin(); iter != Menu.end(); iter++,i++)
+	{
+	}
+}

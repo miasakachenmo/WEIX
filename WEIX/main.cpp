@@ -5,6 +5,7 @@
 #include<functional>
 #include<map>
 #include "Func.h"
+
 using namespace std;
 //全局/静态变量区
 bool CanBack;//菜单判断是否返回的逻辑
@@ -32,15 +33,16 @@ BaseUserZYS *CurrentUser;
 int main()
 {
 	init();
-	GlobalDataZYS::UserList[1]["888"]->id = "123";
-	GlobalDataZYS::UserList[1]["888"]->OnUpDate();
-
+	GlobalDataZYS::UserList[1]["888"]->BindTo(GlobalDataZYS::UserList[1]["888"],"123465");
+	system("pause");
 	system("cls");	
 	while (true)
 	{
-		vector <function<void()>> Options;
+		vector <function<int()>> Options;
 		Options.push_back(CreatUserView);
-		Options.push_back(LoginView);
+		Options.push_back([]() {
+			LoginView();
+			return 0; });
 		printf("1.用户创建\n2.用户登录\n");
 		char Option;
 		Option = GetOption(1, 2);
