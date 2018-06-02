@@ -46,6 +46,7 @@ string DateZYS::GetDateString()
 //列表类----------------------------------------------------
 int FriendList::CreatRelationShip(BaseUserZYS* Master, string Target_Globalid)
 {
+	
 	//验证是否已经存在
 	string ScureSqt = "SELECT * FROM FRIEND WHERE FROMGB='" + Master->GetGlobalid() + "' AND TOGB='" + Target_Globalid + "';";
 	if (Exe(ScureSqt) == 1)
@@ -114,6 +115,7 @@ BaseUserZYS::BaseUserZYS() :Birthday("生日"), ReGistDate("注册日")
 	string Sqlstr = "INSERT INTO USERS (RECORDid,GLOBAL_ID,NAME,BIRTHDAY,REGIST_DATE,PWD)"\
 		"VALUES('" + RECORDid + "','" + Global_id + "','" + GBKToUTF8(Name.c_str()) + "','" + Birthday.GetDateString() + "','" + ReGistDate.GetDateString() + "','" + Pwd + "');";
 	Exe(Sqlstr);
+	CreatMenuMap();
 }
 //从文件读取通用部分
 BaseUserZYS::BaseUserZYS(char **Attrs) :Birthday("生日"), ReGistDate("注册日") //从数据库中初始化
@@ -124,6 +126,27 @@ BaseUserZYS::BaseUserZYS(char **Attrs) :Birthday("生日"), ReGistDate("注册日") /
 	Birthday.SetFromString(Attrs[3]);
 	ReGistDate.SetFromString(Attrs[4]);
 	Pwd = Attrs[7];
+	CreatMenuMap();
+}
+int BaseUserZYS::LoginCheck()
+{
+	system("cls");
+	int Try = 2;
+	for (; Try >= 0; Try--)
+	{
+		cout << "输入密码" << endl;
+		string InPwd = InputPwd();
+		if (InPwd == Pwd)
+			return 1;
+		else
+		{
+			cout << "你还有" << Try << "次机会"<<endl;
+			cout << "继续尝试吗(1.继续2.退出)" << endl;
+			if (GetOption(1, 2) == 2)
+				return 0;
+		}
+	}
+	return 0;
 }
 //创建好友关系
 int BaseUserZYS::CreatFriendRelationship(string Target_Globalid)
@@ -198,7 +221,10 @@ int BaseUserZYS::OnUpDate()
 
 void BaseUserZYS::CreatMenuMap()
 {
-	//AddFunc("查看基本信息", this->PrintMessage);
+	AddFunc("查看基本信息", [this]() {
+		PrintMessage();
+		return 0;
+	});
 	AddFunc("修改名字", [this]() { 
 		system("cls");
 		string NewName;
@@ -243,12 +269,16 @@ WeChatUserZYS::WeChatUserZYS(char **Attrs) :BaseUserZYS(Attrs)
 	ProductCode = 2;
 	id = Attrs[7];
 }
-//检查登陆
-bool WeChatUserZYS::LoginCheck() { return 1; }
+
 //从群中被删除
 int WeChatUserZYS::DeledFromGroup() { return 0; }
 //改变群权限
 int WeChatUserZYS::PermissionChange() { return 0; }
+
+void WeChatUserZYS::CreatMenuMap()
+{
+	
+}
 
 
 
@@ -270,12 +300,14 @@ QQUserZYS::QQUserZYS(char **Attrs) :BaseUserZYS(Attrs)
 	ProductCode = 1;
 	id = Attrs[7];
 }
-//检查登陆
-bool QQUserZYS::LoginCheck() { return true; }
+
 //从群中被删除
 int QQUserZYS::DeledFromGroup() { return 0; }
 //改变群权限
 int QQUserZYS::PermissionChange() { return 0; }
+void QQUserZYS::CreatMenuMap()
+{
+}
 #pragma endregion
 
 void MenuInterface::AddFunc(string FooName, function<int()> Foo)
@@ -284,11 +316,28 @@ void MenuInterface::AddFunc(string FooName, function<int()> Foo)
 	return;
 }
 
-void MenuInterface::ShowFoos()
+int MenuInterface::ShowFoos()
 {
 	map<string, function<int()>>::iterator iter;
+	string *Names = new string[Menu.size()+1];
 	int i = 1;
-	for (iter = Menu.begin(); iter != Menu.end(); iter++,i++)
+	for (iter = Menu.begin(); iter != Menu.end(); iter++, i++)
 	{
+		cout << i << "." << iter->first << endl;
+		Names[i] = iter->first;
+	}
+	//打印函数列表
+	while (true)
+	{
+		system("cls");
+		for (int j = 1; j < i; j++) cout << j << "." << Names[j] << endl;
+		cout << i << ".退出" << endl;
+		int Option = GetOption(1, i);
+		if (Option == i)
+			return 0;
+		else
+		{
+			Menu[Names[Option]]();
+		}
 	}
 }

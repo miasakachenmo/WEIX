@@ -7,6 +7,7 @@
 #include<map>
 #include<wchar.h>
 #include<Windows.h>
+#include <cstdlib>
 #include "sqlite3.h"
 #include "Users.h"
 using namespace std;
@@ -191,7 +192,22 @@ string InputPwd()
 	} while (true);
 	return Pwd;
 }
-
+//如果不存在 返回NULL 如果存在 返回id对应的全局id
+string idToGlobalid(int ProductCode, string id)
+{
+	auto iterfind = find_if(GlobalDataZYS::UserList[ProductCode].begin(), GlobalDataZYS::UserList[ProductCode].end(), [id](pair<string, BaseUserZYS*> user) {
+		if (user.second->id == id)
+			return 1;
+		else
+		{
+			return 0;
+		}
+	});
+	if (iterfind == GlobalDataZYS::UserList[ProductCode].end())
+		return "";
+	else
+		return iterfind->first;
+}
 
 //GBK转UTF8(来源:CSDN)
 string GBKToUTF8(const char* strGBK)
@@ -246,36 +262,25 @@ int LoginView(int ProductCode)
 			ProductCode = Option;
 		}
 	}
-	do
-	{
 		system("cls");
-		printf("输入账号\n");
-		cin >> Account;
 		//匿名函数 作用是寻找对应id的账号
-		auto iterfind = find_if(GlobalDataZYS::UserList[ProductCode].begin(), GlobalDataZYS::UserList[ProductCode].end(), [Account](pair<string, BaseUserZYS*> user) {
-			if (user.second->id == Account)
-				return 1;
-			else
-			{
-				return 0;
-			}
-		});
-		if (iterfind == GlobalDataZYS::UserList[ProductCode].end())
+		string Globalid;
+		while (true)
 		{
-			printf("账号错误!请按1重新输入或者按2退出\n");
-			if (GetOption(1, 2) == 2)
-				return 0;
-			continue;
-		}
-		else
-		{
-			if (iterfind->second->LoginCheck())
+			printf("输入账号\n");
+			cin >> Account;
+			Globalid = idToGlobalid(ProductCode, Account);
+			if (Globalid != "")//找到
+				break;
+			else//没找到
 			{
-				printf("登陆成功!!!!!");
-				return 1;
+				printf("账号错误!请按1重新输入或者按2退出\n");
+				if (GetOption(1, 2) == 2)
+					return 0;
 			}
 		}
-	} while (true);
+		GlobalDataZYS::UserList[ProductCode][Globalid]->LoginCheck();
+		
 }
 //创建用户菜单
 int CreatUserView()

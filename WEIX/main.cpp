@@ -33,7 +33,7 @@ BaseUserZYS *CurrentUser;
 int main()
 {
 	init();
-	GlobalDataZYS::UserList[1]["888"]->BindTo(GlobalDataZYS::UserList[1]["888"],"123465");
+	GlobalDataZYS::UserList[1]["888"]->ShowFoos();
 	system("pause");
 	system("cls");	
 	while (true)

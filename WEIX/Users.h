@@ -99,7 +99,7 @@ public:
 	map<string, function<int()>> Menu;//操作名称,函数
 	void AddFunc(string FooName,function<int()> Foo);//添加函数
 	virtual void CreatMenuMap()=0;
-	void ShowFoos();
+	int ShowFoos();
 };
 #pragma endregion
 
@@ -126,7 +126,7 @@ public:
 	//从数据库中初始化
 	BaseUserZYS(char **Attrs);
 	//检查登陆
-	virtual bool LoginCheck() = 0;
+	int LoginCheck();
 	//从群中被删除
 	virtual int DeledFromGroup() = 0;
 	//改变群权限
@@ -146,7 +146,7 @@ public:
 	string GetGlobalid();
 	//数据更新时
 	int OnUpDate();
-	
+
 	//接口函数
 	virtual void CreatMenuMap();
 
@@ -173,13 +173,14 @@ public:
 	//从数据库读取微信用户
 	WeChatUserZYS(char **Attrs);
 
-	//检查登陆
-	virtual bool LoginCheck();
+
 	//从群中被删除
 	virtual int DeledFromGroup();
 	//改变群权限
 	virtual int PermissionChange();
-	
+	//菜单
+	virtual void CreatMenuMap();
+
 };
 class QQUserZYS :public virtual BaseUserZYS,public virtual IStrongBindWithQQUserZYS
 {
@@ -189,12 +190,11 @@ public:
 	QQUserZYS();//QQ注册
 	QQUserZYS(char **Attrs);
 
-	//检查登陆
-	virtual bool LoginCheck();
 	//从群中被删除
 	virtual int DeledFromGroup();
 	//改变群权限
 	virtual int PermissionChange();
-	//绑定
+	//创建菜单
+	virtual void CreatMenuMap();
 };
 #pragma endregion
