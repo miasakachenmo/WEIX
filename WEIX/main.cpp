@@ -33,16 +33,15 @@ BaseUserZYS *CurrentUser;
 int main()
 {
 	init();
-	GlobalDataZYS::UserList[1]["888"]->ShowFoos();
-	system("pause");
-	system("cls");	
+	system("cls");
+	vector <function<int()>> Options;
+	Options.push_back(CreatUserView);
+	Options.push_back([]() {
+		LoginView();
+		return 0; });
 	while (true)
 	{
-		vector <function<int()>> Options;
-		Options.push_back(CreatUserView);
-		Options.push_back([]() {
-			LoginView();
-			return 0; });
+		system("cls");
 		printf("1.用户创建\n2.用户登录\n");
 		char Option;
 		Option = GetOption(1, 2);

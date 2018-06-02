@@ -125,7 +125,7 @@ public:
 	BaseUserZYS();
 	//从数据库中初始化
 	BaseUserZYS(char **Attrs);
-	//检查登陆
+	//检查登陆 成功返回1 失败返回0
 	int LoginCheck();
 	//从群中被删除
 	virtual int DeledFromGroup() = 0;
@@ -160,7 +160,6 @@ private:
 	string Pwd;
 	DateZYS SignDay;//注册日(用来计算X龄)
 };
-
 class WeChatUserZYS :public virtual BaseUserZYS, virtual public IWeakBindWithQQUserZYS
 {
 public:

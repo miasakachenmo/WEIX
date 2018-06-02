@@ -28,30 +28,28 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName) {
 	int i;
 	string a = argv[5];
+	if (GlobalDataZYS::LastRECORDid <= argv[0])
+	{
+		GlobalDataZYS::LastRECORDid = argv[0];
+		String_Add(&GlobalDataZYS::LastRECORDid);
+	}
 	if (GlobalDataZYS::LastGlobalid <= argv[1])//刷新LastGlobalid
 	{
 		GlobalDataZYS::LastGlobalid = argv[1];
 		String_Add(&GlobalDataZYS::LastGlobalid);
 	}
+	//TODO 利用工厂模式实现个反射 switch好丑
 	switch (argv[5][0])
 	{
 	case '1':
 	{
 		GlobalDataZYS::UserList[1].insert(pair<string, BaseUserZYS*>(argv[1], (BaseUserZYS*)((new QQUserZYS(argv)))));
-		if (GlobalDataZYS::LastQQid <= argv[7])//刷新id
-		{
-			GlobalDataZYS::LastQQid = argv[7];
-			String_Add(&GlobalDataZYS::LastQQid);
-		}
+		break;
 	}
 	case '2':
 	{
 		GlobalDataZYS::UserList[2].insert(pair<string, BaseUserZYS*>(argv[1], (BaseUserZYS*)(new WeChatUserZYS(argv))));
-		if (GlobalDataZYS::LastWeChatid <= argv[7])//刷新id
-		{
-			GlobalDataZYS::LastWeChatid = argv[7];
-			String_Add(&GlobalDataZYS::LastWeChatid);
-		}
+		break;
 	}
 	default:
 		break;
@@ -155,7 +153,6 @@ int init()
 	//读取好友信息
 	SqlString = "SELECT * FROM FRIEND";
 	Exe(SqlString, GetFriendCallBack);
-
 
 	return 0;
 }
@@ -279,7 +276,11 @@ int LoginView(int ProductCode)
 					return 0;
 			}
 		}
-		GlobalDataZYS::UserList[ProductCode][Globalid]->LoginCheck();
+		if (GlobalDataZYS::UserList[ProductCode][Globalid]->LoginCheck())
+		{
+			GlobalDataZYS::UserList[ProductCode][Globalid]->ShowFoos();
+			return 0;
+		}
 		
 }
 //创建用户菜单
@@ -328,7 +329,7 @@ int ChooseProductView()
 	int i;
 	for (i = 0; i < (int)GlobalDataZYS::Products.size(); i++)
 		printf("%d %s\n", i + 1, GlobalDataZYS::Products[i].c_str());
-	printf("%d.  退出\n", i);
-	return GetOption(1, i);
+	printf("%d.退出\n", i+1);
+	return GetOption(1, i+1);
 }
 #pragma endregion

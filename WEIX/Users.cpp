@@ -46,7 +46,7 @@ string DateZYS::GetDateString()
 //列表类----------------------------------------------------
 int FriendList::CreatRelationShip(BaseUserZYS* Master, string Target_Globalid)
 {
-	
+
 	//验证是否已经存在
 	string ScureSqt = "SELECT * FROM FRIEND WHERE FROMGB='" + Master->GetGlobalid() + "' AND TOGB='" + Target_Globalid + "';";
 	if (Exe(ScureSqt) == 1)
@@ -74,32 +74,44 @@ int FriendList::ShowList(BaseUserZYS* Master)
 {
 	//UNDONE SHOWLIST
 	map<string, string>::iterator iter;
-	printf("账号      密码");
+	printf("账号      密码\n");
 	for (iter = List[Master->ProductCode].begin(); iter != List[Master->ProductCode].end(); iter++)
 	{
 		printf("%s      %s\n", GlobalDataZYS::UserList[Master->ProductCode][iter->first]->id.c_str(),iter->second.c_str());
 	}
+	system("pause");
 	return 0;
 }
 
 //强弱绑定类-----------------------------------------------------------------------------------
 int IWeakBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
 {
-	//Master->Global_id = Taget_Globalid;
+	
+	string Orinid = Master->Global_id;
+	Master->Global_id = Taget_Globalid;
+	string SQL = "UPDATE FRIEND SET FROMGB='" + Taget_Globalid + "' WHERE PRODUCTCODE='" + to_string(Master->ProductCode) + "' AND FROMGB='" + Orinid + "'";
+	Exe(SQL);
+	SQL = "UPDATE FRIEND SET TOGB='" + Taget_Globalid + "' WHERE PRODUCTCODE='" + to_string(Master->ProductCode) + "' AND TOGB='" + Orinid + "'";
+	Exe(SQL);
+	Master->OnUpDate();
 	return 0;
 }
 int IStrongBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
 {
-	cout << "strongbindqq" << endl;
-	//Master->Global_id = Taget_Globalid;
-	//Master->id = GlobalDataZYS::UserList[1][Taget_Globalid]->id;
+	string Orinid = Master->Global_id;
+	Master->Global_id = Taget_Globalid;
+	string SQL = "UPDATE FRIEND SET FROMGB='"+Taget_Globalid+"' WHERE PRODUCTCODE='"+to_string(Master->ProductCode)+"' AND FROMGB='"+Orinid+"'";
+	Exe(SQL);
+	SQL = "UPDATE FRIEND SET TOGB='" + Taget_Globalid + "' WHERE PRODUCTCODE='" + to_string(Master->ProductCode) + "' AND TOGB='" + Orinid + "'";
+	Exe(SQL);
+	Master->id = GlobalDataZYS::UserList[1][Taget_Globalid]->id;
 	return 0;
  }
 
 
 #pragma region 产品
-//---------------------基类---------------------------------
-//通用部分的注册
+#pragma region 基类
+
 BaseUserZYS::BaseUserZYS() :Birthday("生日"), ReGistDate("注册日")
 {
 	RECORDid = GlobalDataZYS::LastRECORDid;
@@ -112,6 +124,8 @@ BaseUserZYS::BaseUserZYS() :Birthday("生日"), ReGistDate("注册日")
 	ReGistDate.SetBirthday();
 	cout << "输入密码\n";
 	Pwd = SetPwd();
+	RECORDid = GlobalDataZYS::LastRECORDid;
+	String_Add(&GlobalDataZYS::LastRECORDid);
 	string Sqlstr = "INSERT INTO USERS (RECORDid,GLOBAL_ID,NAME,BIRTHDAY,REGIST_DATE,PWD)"\
 		"VALUES('" + RECORDid + "','" + Global_id + "','" + GBKToUTF8(Name.c_str()) + "','" + Birthday.GetDateString() + "','" + ReGistDate.GetDateString() + "','" + Pwd + "');";
 	Exe(Sqlstr);
@@ -128,6 +142,7 @@ BaseUserZYS::BaseUserZYS(char **Attrs) :Birthday("生日"), ReGistDate("注册日") /
 	Pwd = Attrs[7];
 	CreatMenuMap();
 }
+
 int BaseUserZYS::LoginCheck()
 {
 	system("cls");
@@ -140,7 +155,7 @@ int BaseUserZYS::LoginCheck()
 			return 1;
 		else
 		{
-			cout << "你还有" << Try << "次机会"<<endl;
+			cout << "你还有" << Try << "次机会" << endl;
 			cout << "继续尝试吗(1.继续2.退出)" << endl;
 			if (GetOption(1, 2) == 2)
 				return 0;
@@ -175,6 +190,7 @@ int BaseUserZYS::SetName(string NewName)
 int BaseUserZYS::PrintMessage()
 {
 	printf("%s用户\n昵称:%s\n账号:%s\n生日:%s\n注册日期:%s\n", GlobalDataZYS::Products[ProductCode - 1].c_str(), Name.c_str(), id.c_str(), Birthday.GetDateString().c_str(), ReGistDate.GetDateString().c_str());
+	system("pause");
 	return 0;
 }
 //得到全局信息
@@ -185,7 +201,7 @@ string BaseUserZYS::GetGlobalid()
 //设置密码
 string BaseUserZYS::SetPwd()
 {
-	Pwd = "";
+	Pwd = "";//重置密码
 	do
 	{
 		cout << "输入密码\n";
@@ -196,7 +212,12 @@ string BaseUserZYS::SetPwd()
 			cout << "再次输入的密码不正确,重新输入!";
 			continue;
 		}
-	} while (false);
+		else
+		{
+			break;
+		}
+	} while (true);
+	OnUpDate();//同步到数据库
 	return Pwd;
 }
 //验证密码
@@ -213,8 +234,8 @@ int BaseUserZYS::OnUpDate()
 	string SqlStr;
 	char Buffer[200];
 	sprintf(Buffer, "UPDATE USERS SET GLOBAL_ID='%s',NAME='%s',BIRTHDAY='%s',REGIST_DATE='%s',Id='%s',"
-		"PWD='%s'  WHERE Recordid=%s;",Global_id.c_str(),Name.c_str(),(Birthday.GetDateString()).c_str(),(ReGistDate.GetDateString()).c_str(),id.c_str(),Pwd.c_str(),RECORDid.c_str());
-	SqlStr= Buffer;
+		"PWD='%s'  WHERE Recordid=%s;", Global_id.c_str(), Name.c_str(), (Birthday.GetDateString()).c_str(), (ReGistDate.GetDateString()).c_str(), id.c_str(), Pwd.c_str(), RECORDid.c_str());
+	SqlStr = Buffer;
 	Exe(SqlStr);
 	return 0;
 }
@@ -225,7 +246,7 @@ void BaseUserZYS::CreatMenuMap()
 		PrintMessage();
 		return 0;
 	});
-	AddFunc("修改名字", [this]() { 
+	AddFunc("修改名字", [this]() {
 		system("cls");
 		string NewName;
 		cout << "输入新名字" << endl;
@@ -241,33 +262,55 @@ void BaseUserZYS::CreatMenuMap()
 	});
 	AddFunc("加好友", [this]() {
 		system("cls");
-		string Target;
-		cout << "输入对方ID"<<endl;
+		string Target, TOGB;
+		cout << "输入对方ID" << endl;
 		cin >> Target;
-		Friends.CreatRelationShip(this, Target);
+
+		while (true)
+		{
+			TOGB = idToGlobalid(ProductCode, Target);
+			if (TOGB == "")
+			{
+				cout << "不存在!,按1继续,按2退出" << endl;
+				if (GetOption(1, 2) == 2)
+					return 0;
+				else
+					cin >> Target;
+			}
+			else
+				break;
+		}
+		Friends.CreatRelationShip(this, TOGB);
 		return 0;
-	
+
 	});
 }
 
+#pragma endregion
 
-//UNDONE QQ和微信的登陆检测模块
-//---------------------微信---------------------------------
-//微信用户注册
+
+#pragma region  WEICHAT
 WeChatUserZYS::WeChatUserZYS() :BaseUserZYS()//QQ注册
 {
 	ProductCode = 2;
 	id = GlobalDataZYS::LastWeChatid;
 	String_Add(&id);
-	//UserList.insert(pair<string,QQUserZYS*>(QQid, this));//加入QQ全局用户
 	string Sqlstr = "UPDATE USERS SET Id = '" + id + "' where RECORDid = " + RECORDid + ";" + "UPDATE USERS SET PRODUCTCODE = '" + to_string(ProductCode) + "' where RECORDid = " + RECORDid + ";";
 	Exe(Sqlstr);
+	CreatMenuMap();
 }
 //从本地读取微信用户
 WeChatUserZYS::WeChatUserZYS(char **Attrs) :BaseUserZYS(Attrs)
 {
 	ProductCode = 2;
-	id = Attrs[7];
+	id = Attrs[6];
+	if (GlobalDataZYS::LastWeChatid <= Attrs[6])//刷新id
+	{
+		GlobalDataZYS::LastWeChatid = Attrs[6];
+		String_Add(&GlobalDataZYS::LastWeChatid);
+	}
+	OnUpDate();
+	CreatMenuMap();
 }
 
 //从群中被删除
@@ -277,20 +320,47 @@ int WeChatUserZYS::PermissionChange() { return 0; }
 
 void WeChatUserZYS::CreatMenuMap()
 {
-	
+	Menu.insert(pair<string, function<int()>>("绑定到QQ", [this]() {
+		//加检查 检查是否已经绑定过
+		
+		string QQid, TOGB;
+		cout << "输入想绑定的QQ号" << endl;
+		while (true)
+		{
+			cin >> QQid;
+			TOGB = idToGlobalid(1, QQid);
+			if (TOGB == "")//QQ号不存在
+			{
+				cout << "QQ号不存在!按1退出或者按2继续" << endl;
+				if (GetOption(1, 2) == 2)
+					return 0;
+				else
+					continue;
+			}
+			if (GlobalDataZYS::UserList[ProductCode].find(TOGB)!= GlobalDataZYS::UserList[ProductCode].end())//已经被绑定过,有对应ID的微信号了
+			{
+				cout << "QQ号已经有绑定的微信了!按1退出或者按2重新输入" << endl;
+				if (GetOption(1, 2) == 2)
+					return 0;
+				else
+					continue;
+			}
+			BindTo(this, TOGB);
+			return 0;
+		}
+		return 0;
+	}));
 }
+#pragma endregion
 
 
+#pragma region QQ
 
-
-//---------------------QQ---------------------------------
-//QQ注册
 QQUserZYS::QQUserZYS() :BaseUserZYS()
 {
 	ProductCode = 1;
 	id = GlobalDataZYS::LastQQid;
-	String_Add(&id);
-	//UserList.insert(pair<string,QQUserZYS*>(QQid, this));//加入QQ全局用户
+	String_Add(&GlobalDataZYS::LastQQid);
 	string Sqlstr = "UPDATE USERS SET Id = '" + id + "' where RECORDid = " + RECORDid + ";" + "UPDATE USERS SET PRODUCTCODE = '" + to_string(ProductCode) + "' where RECORDid = " + RECORDid + ";";
 	Exe(Sqlstr);
 }
@@ -298,7 +368,13 @@ QQUserZYS::QQUserZYS() :BaseUserZYS()
 QQUserZYS::QQUserZYS(char **Attrs) :BaseUserZYS(Attrs)
 {
 	ProductCode = 1;
-	id = Attrs[7];
+	id = Attrs[6];
+	if (GlobalDataZYS::LastQQid <= Attrs[6])//刷新id
+	{
+		GlobalDataZYS::LastQQid = Attrs[6];
+		String_Add(&GlobalDataZYS::LastQQid);
+	}
+	OnUpDate();
 }
 
 //从群中被删除
@@ -308,6 +384,8 @@ int QQUserZYS::PermissionChange() { return 0; }
 void QQUserZYS::CreatMenuMap()
 {
 }
+#pragma endregion
+
 #pragma endregion
 
 void MenuInterface::AddFunc(string FooName, function<int()> Foo)

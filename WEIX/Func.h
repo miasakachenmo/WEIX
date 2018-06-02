@@ -30,6 +30,8 @@ int init();
 int GetOption(int Min, int Max);
 //输入密码提供的不显示效果
 string InputPwd();
+//
+string idToGlobalid(int ProductCode, string id);
 
 //GBK转UTF8(来源:CSDN)
 string GBKToUTF8(const char* strGBK);
