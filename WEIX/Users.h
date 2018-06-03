@@ -50,6 +50,7 @@ public:
 //接口函数
 class ListOpertion
 {
+
 public:
 	map<int, map<string, string>> List;
 	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid) = 0;
@@ -58,6 +59,7 @@ public:
 };
 class FriendList :public virtual ListOpertion
 {
+	//含义:<产品号<GB,名字>>
 public:
 	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid);
 	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid);
@@ -70,8 +72,6 @@ public:
 	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid);
 	virtual int ShowList(BaseUserZYS* Master);
 };
-
-
 #pragma endregion
 
 #pragma region 绑定接口
@@ -197,3 +197,17 @@ public:
 	virtual void CreatMenuMap();
 };
 #pragma endregion
+
+#pragma region 群组
+//虚基类
+class BaseGroup: virtual public FriendList
+{
+	string Groupid;
+	string GroupName;
+	string ProductCode;
+	virtual int CreatRelationShip(BaseUserZYS *Target, int PermissionCode);
+	virtual int GetRelationShip(BaseUserZYS *Target, int PermissionCode);
+	virtual int ShowList(BaseUserZYS *Nothinghere);
+	
+};
+#pragma endregion 
