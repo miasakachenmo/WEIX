@@ -143,8 +143,12 @@ int init()
 {
 	GlobalDataZYS::Products.push_back("QQ");
 	GlobalDataZYS::Products.push_back("微信");
-	GlobalDataZYS::UserList.insert(pair<int, map<string, BaseUserZYS*>>(1, GlobalDataZYS::QQUserList));
-	GlobalDataZYS::UserList.insert(pair<int, map<string, BaseUserZYS*>>(2, GlobalDataZYS::WeChatUserList));
+
+	GlobalDataZYS::UserList.insert(pair<int, map<string, BaseUserZYS*>>(1, *(new map<string, BaseUserZYS*>)));
+	GlobalDataZYS::UserList.insert(pair<int, map<string, BaseUserZYS*>>(2, *(new map<string, BaseUserZYS*>)));
+	
+	GlobalDataZYS::Groups.insert(pair<int, map<string, BaseGroup*>>(1, *(new map<string, BaseGroup*>)));
+	GlobalDataZYS::Groups.insert(pair<int, map<string, BaseGroup*>>(2, *(new map<string, BaseGroup*>)));
 
 	//读取所有用户信息
 	string SqlString = "SELECT * FROM USERS";

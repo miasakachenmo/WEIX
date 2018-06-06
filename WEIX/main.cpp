@@ -16,11 +16,16 @@ string GlobalDataZYS::LastGlobalid = "888";
 string GlobalDataZYS::LastQQid = "888";
 string GlobalDataZYS::LastRECORDid = "1";
 string GlobalDataZYS::LastWeChatid = "999";
+string GlobalDataZYS::LastGroupid = "1234567";
 map<int, map<string, BaseUserZYS*> > GlobalDataZYS::UserList;
+map<int, map<string, BaseGroup*>> GlobalDataZYS::Groups;//群们
+
 map<string, BaseUserZYS*> GlobalDataZYS::QQUserList;
 map<string, BaseUserZYS*> GlobalDataZYS::WeChatUserList;
+
 vector<string> GlobalDataZYS::Products;//产品号到产品名的映射
 BaseUserZYS *CurrentUser;
+
 
 #pragma endregion
 

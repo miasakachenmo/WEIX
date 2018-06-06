@@ -31,6 +31,7 @@ public:
 	string GetDateString();
 };
 class BaseUserZYS;
+class BaseGroup;
 class GlobalDataZYS
 {
 public:
@@ -38,10 +39,12 @@ public:
 	static string LastGlobalid;//最后的全局id
 	static string LastQQid;
 	static string LastWeChatid;
+	static string LastGroupid;
 	static vector<string> Products;
 	static map<int, map<string, BaseUserZYS*> > UserList;
 	static map<string, BaseUserZYS*> QQUserList;
 	static map<string, BaseUserZYS*> WeChatUserList;
+	static map<int, map<string, BaseGroup*>> Groups;//群们
 };
 
 #pragma endregion
@@ -52,25 +55,25 @@ class ListOpertion
 {
 
 public:
-	map<int, map<string, string>> List;
+	map<string, string> List;
 	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid) = 0;
 	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid) = 0;
-	virtual int ShowList(BaseUserZYS* Master) = 0;
+	virtual int ShowList(int ProductCode) = 0;
 };
 class FriendList :public virtual ListOpertion
 {
-	//含义:<产品号<GB,名字>>
+	//含义:<GB,名字>
 public:
 	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid);
 	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid);
-	virtual int ShowList(BaseUserZYS* Master);
+	virtual int ShowList(int ProductCode);
 };
 class GroupList :public virtual ListOpertion
 {
 public:
 	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid);
 	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid);
-	virtual int ShowList(BaseUserZYS* Master);
+	virtual int ShowList(int ProductCode);
 };
 #pragma endregion
 
@@ -196,18 +199,32 @@ public:
 	//创建菜单
 	virtual void CreatMenuMap();
 };
-#pragma endregion
+#pragma endregion 
 
 #pragma region 群组
 //虚基类
 class BaseGroup: virtual public FriendList
 {
+public:
+	//list的含义<群号,permissioncode>
 	string Groupid;
 	string GroupName;
 	string ProductCode;
-	virtual int CreatRelationShip(BaseUserZYS *Target, int PermissionCode);
+	virtual int CreatRelationShip(BaseUserZYS *Target, string PermissionCode);
 	virtual int GetRelationShip(BaseUserZYS *Target, int PermissionCode);
-	virtual int ShowList(BaseUserZYS *Nothinghere);
+	virtual int ShowList(int ProductCode);
+	static BaseGroup* CreatGroup(BaseUserZYS* GroupMaster);
+	
+};
+class  WeChatGroupZYS:virtual public BaseGroup
+{
+public:
+	//读取群
+	WeChatGroupZYS(char **attrs);
+	//static BaseGroup* CreatWeChatGroup(WeChatUserZYS * GroupMaster);
+	WeChatGroupZYS();
+private:
+	
 	
 };
 #pragma endregion 

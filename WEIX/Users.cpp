@@ -61,23 +61,23 @@ int FriendList::CreatRelationShip(BaseUserZYS* Master, string Target_Globalid)
 	Exe(SqlStr);
 
 	//写入内存
-	List[Master->ProductCode].insert(pair<string, string>(Target_Globalid, GlobalDataZYS::UserList[Master->ProductCode][Target_Globalid]->Name));
+	List.insert(pair<string, string>(Target_Globalid, GlobalDataZYS::UserList[Master->ProductCode][Target_Globalid]->Name));
 	return 0;
 }
 int FriendList::GetRelationShip(BaseUserZYS* Master, string Target_Globalid)
 {
 	//写入内存
-	List[Master->ProductCode].insert(pair<string, string>(Target_Globalid, GlobalDataZYS::UserList[Master->ProductCode][Target_Globalid]->Name));
+	List.insert(pair<string, string>(Target_Globalid, GlobalDataZYS::UserList[Master->ProductCode][Target_Globalid]->Name));
 	return 0;
 }
-int FriendList::ShowList(BaseUserZYS* Master)
+int FriendList::ShowList(int ProductCode)
 {
 	//UNDONE SHOWLIST
 	map<string, string>::iterator iter;
 	printf("账号      密码\n");
-	for (iter = List[Master->ProductCode].begin(); iter != List[Master->ProductCode].end(); iter++)
+	for (iter = List.begin(); iter != List.end(); iter++)
 	{
-		printf("%s      %s\n", GlobalDataZYS::UserList[Master->ProductCode][iter->first]->id.c_str(),iter->second.c_str());
+		printf("%s      %s\n", GlobalDataZYS::UserList[ProductCode][iter->first]->id.c_str(),iter->second.c_str());
 	}
 	system("pause");
 	return 0;
@@ -254,7 +254,7 @@ void BaseUserZYS::CreatMenuMap()
 		SetName(NewName);
 		return 0; });
 	AddFunc("好友列表", [this]() {
-		Friends.ShowList(this);
+		Friends.ShowList(this->ProductCode);
 		return 0; });
 	AddFunc("修改密码", [this]() {
 		SetPwd();
@@ -320,36 +320,7 @@ int WeChatUserZYS::PermissionChange() { return 0; }
 
 void WeChatUserZYS::CreatMenuMap()
 {
-	Menu.insert(pair<string, function<int()>>("绑定到QQ", [this]() {
-		//加检查 检查是否已经绑定过
-		
-		string QQid, TOGB;
-		cout << "输入想绑定的QQ号" << endl;
-		while (true)
-		{
-			cin >> QQid;
-			TOGB = idToGlobalid(1, QQid);
-			if (TOGB == "")//QQ号不存在
-			{
-				cout << "QQ号不存在!按1退出或者按2继续" << endl;
-				if (GetOption(1, 2) == 2)
-					return 0;
-				else
-					continue;
-			}
-			if (GlobalDataZYS::UserList[ProductCode].find(TOGB)!= GlobalDataZYS::UserList[ProductCode].end())//已经被绑定过,有对应ID的微信号了
-			{
-				cout << "QQ号已经有绑定的微信了!按1退出或者按2重新输入" << endl;
-				if (GetOption(1, 2) == 2)
-					return 0;
-				else
-					continue;
-			}
-			BindTo(this, TOGB);
-			return 0;
-		}
-		return 0;
-	}));
+
 }
 #pragma endregion
 
@@ -388,16 +359,18 @@ void QQUserZYS::CreatMenuMap()
 
 #pragma endregion
 
+
+#pragma region 菜单项
+
 void MenuInterface::AddFunc(string FooName, function<int()> Foo)
 {
 	Menu.insert(pair<string, function<int()>>(FooName, Foo));
 	return;
 }
-
 int MenuInterface::ShowFoos()
 {
 	map<string, function<int()>>::iterator iter;
-	string *Names = new string[Menu.size()+1];
+	string *Names = new string[Menu.size() + 1];
 	int i = 1;
 	for (iter = Menu.begin(); iter != Menu.end(); iter++, i++)
 	{
@@ -419,3 +392,72 @@ int MenuInterface::ShowFoos()
 		}
 	}
 }
+#pragma endregion
+
+
+#pragma region 群
+
+//创建关系的函数,需要确认是否已经存在!
+int BaseGroup::CreatRelationShip(BaseUserZYS * Target, string PermissionCode)//这是群的创建好友函数!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!总搞混
+{
+	//验证是否已经存在关系
+	if (List.find(Target->GetGlobalid()) != List.end())
+	{
+		cout << "已经是群成员了!!!!!!";
+	}
+	string ScureSqt = "SELECT * FROM GROUPS WHERE GB='" + Target->GetGlobalid() + "' AND GROUPID='" + Groupid + "';";
+	if (Exe(ScureSqt) == 1)
+	{
+		cout << Target->Name << "已经是群成员了!!\n";
+		return 0;
+	}
+	//TODO:验证是否有这个群 验证个P 这就是群的方法,验证应该加在用户类中
+	//若不存在则调用数据库存进去
+	string SqlStr = "INSERT INTO GROUPS(GB,GROUPID,PRODUCTCODE,PERMISSIONCODE)"\
+		"VALUES('" + Target->GetGlobalid() + "', '" + Groupid + "', '" + to_string(Target->ProductCode) + "','" + PermissionCode + "'); ";
+	Exe(SqlStr);
+
+	//写入内存
+	List.insert(pair<string, string>(Target->GetGlobalid(), PermissionCode));
+	return 0;
+}
+//从已有数据获取群成员的函数 注意没有任何检验!
+int BaseGroup::GetRelationShip(BaseUserZYS * Target, int PermissionCode)
+{
+	
+	List.insert(pair<string, string>(Target->GetGlobalid(), to_string(PermissionCode)));
+	return 0;
+}
+
+int BaseGroup::ShowList(int ProductCode)
+{
+	
+	return 0;
+}
+
+BaseGroup * BaseGroup::CreatGroup(BaseUserZYS * GroupMaster)
+{
+	BaseGroup *Temp = new BaseGroup;
+	cout << "输入群名称" << endl;
+	cin >> Temp->GroupName;
+	//cout << "输入群类型" << endl;
+	//cin>>
+	Temp->Groupid = GlobalDataZYS::LastGroupid;
+	String_Add(&GlobalDataZYS::LastGroupid);
+	Temp->CreatRelationShip(GroupMaster, "1");
+	//	GlobalDataZYS::Groups[GroupMaster->ProductCode].insert(pair<string, BaseGroup*>(Temp->Groupid, Temp));//群插入群列表
+	//插入数据库
+	string Sqlstr = "INSERT INTO USERS (GROUPID,GB,PRODUCTCODE,PERMISSIONCODE,GROUPNAME)"\
+		"VALUES('" + Temp->Groupid + "','" + GroupMaster->GetGlobalid() + "','" + to_string(GroupMaster->ProductCode) + "','" + "1'" + ",'" + Temp->GroupName + "');";
+	Exe(Sqlstr);
+	return Temp;
+}
+
+WeChatGroupZYS::WeChatGroupZYS(char ** attrs)
+{
+	Groupid = attrs[1];
+	GroupName = attrs[5];
+}
+
+
+#pragma endregion
