@@ -320,7 +320,39 @@ int WeChatUserZYS::PermissionChange() { return 0; }
 
 void WeChatUserZYS::CreatMenuMap()
 {
-
+	Menu.insert(pair<string, function<int()>>("绑定到QQ", [this]() {
+		//加检查 检查是否已经绑定过
+		
+		string QQid, TOGB;
+		cout << "输入想绑定到的QQ号" << endl;
+		while (true)
+		{
+			cin >> QQid;
+			TOGB = idToGlobalid(1, QQid);
+			if (TOGB == "")//QQ号不存在
+			{
+				cout << "QQ号不存在!按1退出或者按2继续" << endl;
+				if (GetOption(1, 2) == 2)
+					return 0;
+				else
+					continue;
+			}
+			if (GlobalDataZYS::UserList[ProductCode].find(TOGB)!= GlobalDataZYS::UserList[ProductCode].end())//已经被绑定过,有对应ID的微信号了
+			{
+				cout << "QQ号已经有绑定的微信了!按1退出或者按2重新输入" << endl;
+				if (GetOption(1, 2) == 2)
+					return 0;
+				else
+					continue;
+			}
+			BindTo(this, TOGB);
+			return 0;
+		}
+		return 0;
+	}));
+	//AddFunc("创建群聊", [this]() {
+		//WeChatGroupZYS.CreatGroup();
+		//return 0; });
 }
 #pragma endregion
 
