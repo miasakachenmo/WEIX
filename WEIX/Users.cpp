@@ -109,7 +109,7 @@ int IStrongBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
  }
 
 
-#pragma region ²úÆ·
+#pragma region ÓÃ»§
 #pragma region »ùÀà
 
 BaseUserZYS::BaseUserZYS() :Birthday("ÉúÈÕ"), ReGistDate("×¢²áÈÕ")
@@ -242,6 +242,34 @@ int BaseUserZYS::OnUpDate()
 
 void BaseUserZYS::CreatMenuMap()
 {
+	AddFunc("µÇÂ½µ½ÆäËû·þÎñ", [this]() {
+		int size = GlobalDataZYS::UserList.size();
+		vector<BaseUserZYS*> BindUserList;
+		int Ops = 1;
+		//ÔÚËùÓÐ²úÆ·ÖÐÑ°ÕÒÕâ¸öÈË
+		for (int i = 1; i <= size; i++)
+		{
+			if(i==ProductCode)
+				continue;
+			map<string, BaseUserZYS*>::iterator j;
+			j = GlobalDataZYS::UserList[i].find(Global_id);
+			if(j== GlobalDataZYS::UserList[i].end())
+				continue;
+			else
+			{
+				cout << Ops << ".  " << GlobalDataZYS::Products[i - 1]<<endl;
+				Ops++;
+				BindUserList.push_back(j->second);
+			}
+		}
+		cout << "°´¶ÔÓ¦µÄid½øÈë·þÎñ,°´0ÍË³ö" << endl;
+		int Option = GetOption(0, BindUserList.size());
+		if (Option == 0)
+			return 0;
+		else
+			BindUserList[Option - 1]->ShowFoos();
+		return 0;
+	});
 	AddFunc("²é¿´»ù±¾ÐÅÏ¢", [this]() {
 		PrintMessage();
 		return 0;
@@ -284,6 +312,15 @@ void BaseUserZYS::CreatMenuMap()
 		return 0;
 
 	});
+	AddFunc("´´½¨Èº", [this]() {
+		CreatGroup();
+		return 0;
+	});
+	AddFunc("´ÓÆäËû·þÎñÌí¼ÓºÃÓÑ", [this]() {
+		vector<string> Friends;
+		
+		return 0 ; });
+
 }
 
 #pragma endregion
@@ -294,9 +331,10 @@ WeChatUserZYS::WeChatUserZYS() :BaseUserZYS()//QQ×¢²á
 {
 	ProductCode = 2;
 	id = GlobalDataZYS::LastWeChatid;
-	String_Add(&id);
+	String_Add(&GlobalDataZYS::LastWeChatid);
 	string Sqlstr = "UPDATE USERS SET Id = '" + id + "' where RECORDid = " + RECORDid + ";" + "UPDATE USERS SET PRODUCTCODE = '" + to_string(ProductCode) + "' where RECORDid = " + RECORDid + ";";
 	Exe(Sqlstr);
+
 	CreatMenuMap();
 }
 //´Ó±¾µØ¶ÁÈ¡Î¢ÐÅÓÃ»§
@@ -313,6 +351,12 @@ WeChatUserZYS::WeChatUserZYS(char **Attrs) :BaseUserZYS(Attrs)
 	CreatMenuMap();
 }
 
+void WeChatUserZYS::CreatGroup()
+{
+	WeChatGroupZYS::CreatGroup(this);
+	return;
+}
+
 //´ÓÈºÖÐ±»É¾³ý
 int WeChatUserZYS::DeledFromGroup() { return 0; }
 //¸Ä±äÈºÈ¨ÏÞ
@@ -320,39 +364,18 @@ int WeChatUserZYS::PermissionChange() { return 0; }
 
 void WeChatUserZYS::CreatMenuMap()
 {
-	Menu.insert(pair<string, function<int()>>("°ó¶¨µ½QQ", [this]() {
-		//¼Ó¼ì²é ¼ì²éÊÇ·ñÒÑ¾­°ó¶¨¹ý
-		
-		string QQid, TOGB;
-		cout << "ÊäÈëÏë°ó¶¨µ½µÄQQºÅ" << endl;
-		while (true)
-		{
-			cin >> QQid;
-			TOGB = idToGlobalid(1, QQid);
-			if (TOGB == "")//QQºÅ²»´æÔÚ
-			{
-				cout << "QQºÅ²»´æÔÚ!°´1ÍË³ö»òÕß°´2¼ÌÐø" << endl;
-				if (GetOption(1, 2) == 2)
-					return 0;
-				else
-					continue;
-			}
-			if (GlobalDataZYS::UserList[ProductCode].find(TOGB)!= GlobalDataZYS::UserList[ProductCode].end())//ÒÑ¾­±»°ó¶¨¹ý,ÓÐ¶ÔÓ¦IDµÄÎ¢ÐÅºÅÁË
-			{
-				cout << "QQºÅÒÑ¾­ÓÐ°ó¶¨µÄÎ¢ÐÅÁË!°´1ÍË³ö»òÕß°´2ÖØÐÂÊäÈë" << endl;
-				if (GetOption(1, 2) == 2)
-					return 0;
-				else
-					continue;
-			}
-			BindTo(this, TOGB);
+	AddFunc("ÉêÇë¼ÓÈëÈºÁÄ", [this]() {
+		string JoinGroupGlobalid=GetCorrectGroup(ProductCode);
+		if (JoinGroupGlobalid == "")
 			return 0;
-		}
-		return 0;
-	}));
-	//AddFunc("´´½¨ÈºÁÄ", [this]() {
-		//WeChatGroupZYS.CreatGroup();
-		//return 0; });
+		else
+			//TODO ÉêÇë¼ÓÈëµÄ¹¦ÄÜ
+			GlobalDataZYS::Groups[ProductCode][JoinGroupGlobalid]->CreatRelationShip(this,"3");//ÆÕÍ¨ÈºÔ±
+		return 0; });
+	AddFunc("ÈºÁÐ±í", [this]() {
+		Groups.ShowList(ProductCode);
+		return 0; });
+
 }
 #pragma endregion
 
@@ -380,6 +403,12 @@ QQUserZYS::QQUserZYS(char **Attrs) :BaseUserZYS(Attrs)
 	OnUpDate();
 }
 
+void QQUserZYS::CreatGroup()
+{
+	//TODO QQCREATGROUP
+	return;
+}
+
 //´ÓÈºÖÐ±»É¾³ý
 int QQUserZYS::DeledFromGroup() { return 0; }
 //¸Ä±äÈºÈ¨ÏÞ
@@ -403,7 +432,7 @@ int MenuInterface::ShowFoos()
 {
 	map<string, function<int()>>::iterator iter;
 	string *Names = new string[Menu.size() + 1];
-	int i = 1;
+	int i = 0;
 	for (iter = Menu.begin(); iter != Menu.end(); iter++, i++)
 	{
 		cout << i << "." << iter->first << endl;
@@ -413,9 +442,11 @@ int MenuInterface::ShowFoos()
 	while (true)
 	{
 		system("cls");
-		for (int j = 1; j < i; j++) cout << j << "." << Names[j] << endl;
+		for (int j = 0; j < i; j++) cout << j << "." << Names[j] << endl;
 		cout << i << ".ÍË³ö" << endl;
-		int Option = GetOption(1, i);
+		//TODO ¸ÄÒ»ÏÂÕâÀï
+
+		int Option = GetBigOption(0, i);
 		if (Option == i)
 			return 0;
 		else
@@ -428,15 +459,31 @@ int MenuInterface::ShowFoos()
 
 
 #pragma region Èº
+//È«¾Öid,È¨ÏÞ
+BaseGroup::BaseGroup()
+{
+	CreatMenuMap();
+}
 
-//´´½¨¹ØÏµµÄº¯Êý,ÐèÒªÈ·ÈÏÊÇ·ñÒÑ¾­´æÔÚ!
+BaseGroup::BaseGroup(char ** argvs)
+{
+	Groupid = argvs[1];
+	GroupName = argvs[5];
+	ProductCode = atoi(argvs[4]);
+	CreatRelationShip(GlobalDataZYS::UserList[ProductCode][argvs[2]], argvs[3]);//°ÑÕâ¸öÓÃ»§¼Ó½øÈ¥
+	CreatMenuMap();
+}
+
+//¶ÔÈºÀ´Ëµ´´½¨¹ØÏµµÄº¯Êý,ÐèÒªÈ·ÈÏÊÇ·ñÒÑ¾­´æÔÚ!µ«ÊÇ²¢Ã»ÓÐ°ÑÊý¾Ý¼ÓÈëµ½ÓÃ»§µÄgrouplistÀï,×¢ÒâÒ»ÏÂ
 int BaseGroup::CreatRelationShip(BaseUserZYS * Target, string PermissionCode)//ÕâÊÇÈºµÄ´´½¨ºÃÓÑº¯Êý!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!×Ü¸ã»ì
 {
 	//ÑéÖ¤ÊÇ·ñÒÑ¾­´æÔÚ¹ØÏµ
 	if (List.find(Target->GetGlobalid()) != List.end())
 	{
 		cout << "ÒÑ¾­ÊÇÈº³ÉÔ±ÁË!!!!!!";
+		return 0;
 	}
+	//´ÓÊý¾Ý¿âÖÐÈ·ÈÏ
 	string ScureSqt = "SELECT * FROM GROUPS WHERE GB='" + Target->GetGlobalid() + "' AND GROUPID='" + Groupid + "';";
 	if (Exe(ScureSqt) == 1)
 	{
@@ -445,51 +492,201 @@ int BaseGroup::CreatRelationShip(BaseUserZYS * Target, string PermissionCode)//Õ
 	}
 	//TODO:ÑéÖ¤ÊÇ·ñÓÐÕâ¸öÈº ÑéÖ¤¸öP Õâ¾ÍÊÇÈºµÄ·½·¨,ÑéÖ¤Ó¦¸Ã¼ÓÔÚÓÃ»§ÀàÖÐ
 	//Èô²»´æÔÚÔòµ÷ÓÃÊý¾Ý¿â´æ½øÈ¥
-	string SqlStr = "INSERT INTO GROUPS(GB,GROUPID,PRODUCTCODE,PERMISSIONCODE)"\
-		"VALUES('" + Target->GetGlobalid() + "', '" + Groupid + "', '" + to_string(Target->ProductCode) + "','" + PermissionCode + "'); ";
-	Exe(SqlStr);
-
-	//Ð´ÈëÄÚ´æ
+	string SQL = "INSERT INTO GROUPS(GB,GROUPID,PRODUCTCODE,PERMISSIONCODE,GROUPNAME)"\
+		"VALUES('" + Target->GetGlobalid() + "', '" + Groupid + "', '" + to_string(Target->ProductCode) + "','" + PermissionCode + "','"+GlobalDataZYS::Groups[Target->ProductCode][Groupid]->GroupName+"');";
+	Exe(SQL);
+	//°ÑÈº²åÈëµ½ÓÃ»§µÄÁÐ±íÀï
+	Target->Groups.List.insert(pair<string, string>(Groupid,PermissionCode));
+	//°ÑÓÃ»§²åÈëµ½ÈºµÄÁÐ±íÀï
 	List.insert(pair<string, string>(Target->GetGlobalid(), PermissionCode));
 	return 0;
 }
-//´ÓÒÑÓÐÊý¾Ý»ñÈ¡Èº³ÉÔ±µÄº¯Êý ×¢ÒâÃ»ÓÐÈÎºÎ¼ìÑé!
-int BaseGroup::GetRelationShip(BaseUserZYS * Target, int PermissionCode)
+//´ÓÊý¾Ý¿â»ñÈ¡Èº³ÉÔ±µÄº¯Êý ×¢ÒâÃ»ÓÐÈÎºÎ¼ìÑé!
+int BaseGroup::GetRelationShip(BaseUserZYS * Target, string PermissionCode)
 {
 	
-	List.insert(pair<string, string>(Target->GetGlobalid(), to_string(PermissionCode)));
+	List.insert(pair<string, string>(Target->GetGlobalid(), PermissionCode));
 	return 0;
 }
-
 int BaseGroup::ShowList(int ProductCode)
 {
-	
+	map<string, string>::iterator iter = List.begin();
+	for (int i = 1;iter!=List.end(); iter++,i++)
+	{
+		cout << i  << ". " << GlobalDataZYS::UserList[ProductCode][iter->first]->Name <<"  "<< GlobalDataZYS::Permissions[atoi(iter->second.c_str())]<< endl;
+	}
+	system("pause");
 	return 0;
 }
+//·ûºÏ·µ»Ø1,²»·ûºÏ·µ»Ø0
+int BaseGroup::PermissionCheck(BaseUserZYS * User, string MinPermission)
+{
+	if (this->List[User->GetGlobalid()] <= MinPermission)
+		return 1;
+	else 
+		return 0;
+}
 
-BaseGroup * BaseGroup::CreatGroup(BaseUserZYS * GroupMaster)
+void BaseGroup::CreatMenuMap()
+{
+	AddFunc("ÈºÔ±ÁÐ±í", [this]() {
+		ShowList(ProductCode);
+		return 0;
+	});
+}
+
+void BaseGroup::SetPermissionCode(string TargetGB,string NewCode)
+{
+	//¼ìÑéÒ»ÏÂÈËÊýÊÇ·ñ³¬¹ýÏÞÖÆ
+	auto iterfind =find_if(List.begin(), List.end(), [](pair<string, string> User) {
+		if (User.second == "1")
+			return 1;
+		else
+			return 0;
+			});
+	if (iterfind != List.end())
+	{
+		cout << "²Ù×÷Ê§°Ü,²»ÄÜÓÐÁ½ÃûÈºÖ÷!"<<endl;
+		system("pause");
+		return;
+	}
+	List[TargetGB] = NewCode;
+	string test;
+	string SQL = "UPDATE GROUPS SET PERMISSIONCODE='" + NewCode + "' WHERE GROUPID='" +Groupid + "' AND USERGB='" + TargetGB + "' AND PRODUCTCODE='"+to_string(ProductCode)+"';";
+	Exe(SQL);
+	return;
+}
+
+void BaseGroup::SetAdm()
+{
+	ShowList(ProductCode);
+	cout << "ÊäÈëÏëÒªÉýÎª¹ÜÀíµÄÈºÔ±ÐòºÅ,ÓÃ¿Õ¸ñ·Ö¿ª" << endl;
+	char c;
+	string GB;
+	while (c = cin.get() != '\n')
+	{
+		cin.unget();
+		cin >> GB;
+		SetPermissionCode(GB, "2");
+	}
+	
+}
+
+BaseGroup* BaseGroup::CreatGroup(BaseUserZYS * GroupMaster)
 {
 	BaseGroup *Temp = new BaseGroup;
+	Temp->Groupid = GlobalDataZYS::LastGroupid;
+
 	cout << "ÊäÈëÈºÃû³Æ" << endl;
 	cin >> Temp->GroupName;
 	//cout << "ÊäÈëÈºÀàÐÍ" << endl;
 	//cin>>
 	Temp->Groupid = GlobalDataZYS::LastGroupid;
 	String_Add(&GlobalDataZYS::LastGroupid);
+	GlobalDataZYS::Groups[GroupMaster->ProductCode].insert(pair<string, BaseGroup*>(Temp->Groupid, Temp));
+	Temp->ProductCode = GroupMaster->ProductCode;
 	Temp->CreatRelationShip(GroupMaster, "1");
 	//	GlobalDataZYS::Groups[GroupMaster->ProductCode].insert(pair<string, BaseGroup*>(Temp->Groupid, Temp));//Èº²åÈëÈºÁÐ±í
 	//²åÈëÊý¾Ý¿â
-	string Sqlstr = "INSERT INTO USERS (GROUPID,GB,PRODUCTCODE,PERMISSIONCODE,GROUPNAME)"\
-		"VALUES('" + Temp->Groupid + "','" + GroupMaster->GetGlobalid() + "','" + to_string(GroupMaster->ProductCode) + "','" + "1'" + ",'" + Temp->GroupName + "');";
-	Exe(Sqlstr);
 	return Temp;
 }
-
-WeChatGroupZYS::WeChatGroupZYS(char ** attrs)
+/*WeChatGroupZYS::WeChatGroupZYS(char ** attrs)
 {
 	Groupid = attrs[1];
 	GroupName = attrs[5];
-}
+}*/
+
 
 
 #pragma endregion
+
+
+int GroupList::CreatRelationShip(BaseUserZYS * Master, string Target_Globalid)
+{
+	//TODO: ¼ÓÈëÈºµÄ²Ù×÷,´Ë´¦ÐèÒªÑéÖ¤Ò»ÏÂÊÇ·ñ´æÔÚÈº Õâ¸öÑéÖ¤Ó¦¸Ã¼ÓÔÚ±ð´¦
+	/*	while(GlobalDataZYS::Groups[Master->ProductCode].find(Target_Globalid) == GlobalDataZYS::Groups[Master->ProductCode].end())
+	{
+		cout << "²»´æÔÚÈººÅÎª" + Target_Globalid + "µÄÈº" << "°´1ÖØÐÂÊäÈë,°´2ÍË³ö"<<endl;
+		if (GetOption(1, 2) == 2)
+			return 0;
+		else
+		{
+			cout << "ÊäÈëÈººÅ" << endl;
+			cin >> Target_Globalid;
+		}
+	};*/
+
+	GlobalDataZYS::Groups[Master->ProductCode][Target_Globalid]->CreatRelationShip(Master, "3");
+	return 0;
+}
+
+//¶ÁÈ¡ÈºÔ±¹ØÏµ
+int GroupList::GetRelationShip(BaseUserZYS * Master, string Target_Globalid)
+{
+	return 0;
+}
+
+int GroupList::ShowList(int ProductCode)
+{
+	string Option;
+	map<string, string>::iterator i;
+	vector<BaseGroup*> Entrence;
+	int Count = 1;
+	cout << "    ÈºÃû     ÈººÅ      ×´Ì¬"<<endl;
+	for (i = List.begin(); i != List.end(); i++,Count++)
+	{
+		cout << Count << "." << GlobalDataZYS::Groups[ProductCode][i->first]->GroupName << "    " << i->first << "  " << GlobalDataZYS::Permissions[atoi(i->second.c_str())] << endl;
+		Entrence.push_back(GlobalDataZYS::Groups[ProductCode][i->first]);
+	}
+	cout << "ÊäÈë0ÍË³ö,ÊäÈëÐòºÅ½øÈëÈº"<<endl;
+	while (1)
+	{
+		cin >> Option;
+		if (Option == "0")
+			return 0;
+		else
+		{
+			int Index = atoi(Option.c_str());
+			
+			if (Index<=Entrence.size()&&Index>0)
+			{
+				Entrence[Index - 1]->ShowFoos();
+				break;
+			}
+			else
+			{
+				cout << "ÊäÈëµÄÐòºÅ²»ÕýÈ·! °´0ÍË³ö°´1ÖØÐÂÊäÈë" << endl;
+				if (GetOption(0, 1) == 0)
+					return 0;
+				else continue;
+			}
+		}
+	}
+	return 0;
+}
+
+WeChatGroupZYS::WeChatGroupZYS() :BaseGroup()
+{
+
+}
+WeChatGroupZYS::WeChatGroupZYS(char ** argvs):BaseGroup(argvs)
+{
+}
+
+void WeChatGroupZYS::CreatMenuMap()
+{
+	//ÐèÇó:¹ÜÀíÔ±
+	if (PermissionCheck(GlobalDataZYS::CurrentUser, "2"))
+		AddFunc("ÌßÈË", [this]() {
+
+		ShowList(ProductCode);
+		return 0;
+		});
+
+	if (PermissionCheck(GlobalDataZYS::CurrentUser, "2"))
+		AddFunc("ÉèÖÃ¹ÜÀíÔ±", [this]() {
+		
+
+		return 0;
+	});
+}

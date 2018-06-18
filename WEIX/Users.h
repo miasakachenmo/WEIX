@@ -45,6 +45,9 @@ public:
 	static map<string, BaseUserZYS*> QQUserList;
 	static map<string, BaseUserZYS*> WeChatUserList;
 	static map<int, map<string, BaseGroup*>> Groups;//群们
+	static BaseUserZYS* CurrentUser;
+	static string Permissions[];
+	
 };
 
 #pragma endregion
@@ -70,6 +73,7 @@ public:
 };
 class GroupList :public virtual ListOpertion
 {
+	//群号 权限
 public:
 	virtual int CreatRelationShip(BaseUserZYS* Master, string Target_Globalid);
 	virtual int GetRelationShip(BaseUserZYS* Master, string Target_Globalid);
@@ -123,6 +127,7 @@ public:
 	DateZYS ReGistDate;
 
 	FriendList Friends;
+	GroupList Groups;
 
 	//创建模式  ,  在基类中不执行文件操作 
 	BaseUserZYS();
@@ -134,6 +139,9 @@ public:
 	virtual int DeledFromGroup() = 0;
 	//改变群权限
 
+	//创建群
+	virtual void CreatGroup()=0;
+	//改
 	virtual int PermissionChange() = 0;
 	//打印信息
 	int PrintMessage();
@@ -174,6 +182,9 @@ public:
 	WeChatUserZYS();
 	//从数据库读取微信用户
 	WeChatUserZYS(char **Attrs);
+	//创建群的虚函数
+	virtual void CreatGroup();
+
 
 
 	//从群中被删除
@@ -192,6 +203,7 @@ public:
 	QQUserZYS();//QQ注册
 	QQUserZYS(char **Attrs);
 
+	virtual void CreatGroup();
 	//从群中被删除
 	virtual int DeledFromGroup();
 	//改变群权限
@@ -203,26 +215,32 @@ public:
 
 #pragma region 群组
 //虚基类
-class BaseGroup: virtual public FriendList
+class BaseGroup: virtual public FriendList,virtual public MenuInterface
 {
 public:
-	//list的含义<群号,permissioncode>
+	//list的含义<GB,permissioncode>
+	BaseGroup();
+	BaseGroup(char **argvs);
 	string Groupid;
 	string GroupName;
-	string ProductCode;
+	int ProductCode;
 	virtual int CreatRelationShip(BaseUserZYS *Target, string PermissionCode);
-	virtual int GetRelationShip(BaseUserZYS *Target, int PermissionCode);
+	virtual int GetRelationShip(BaseUserZYS *Target, string PermissionCode);
 	virtual int ShowList(int ProductCode);
+	virtual int PermissionCheck(BaseUserZYS* User,string MinPermission);
+	virtual void CreatMenuMap();
+	virtual void SetPermissionCode(string TargetGB,string NewCode);
+	virtual void SetAdm();
 	static BaseGroup* CreatGroup(BaseUserZYS* GroupMaster);
 	
 };
-class  WeChatGroupZYS:virtual public BaseGroup
+class  WeChatGroupZYS:virtual public BaseGroup,virtual public MenuInterface
 {
 public:
-	//读取群
-	WeChatGroupZYS(char **attrs);
-	//static BaseGroup* CreatWeChatGroup(WeChatUserZYS * GroupMaster);
 	WeChatGroupZYS();
+	WeChatGroupZYS(char **argvs);
+	virtual void CreatMenuMap();
+	//读取群
 private:
 	
 	

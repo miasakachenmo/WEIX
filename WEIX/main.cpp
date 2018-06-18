@@ -19,10 +19,10 @@ string GlobalDataZYS::LastWeChatid = "999";
 string GlobalDataZYS::LastGroupid = "1234567";
 map<int, map<string, BaseUserZYS*> > GlobalDataZYS::UserList;
 map<int, map<string, BaseGroup*>> GlobalDataZYS::Groups;//群们
-
+BaseUserZYS* GlobalDataZYS::CurrentUser = NULL;
 map<string, BaseUserZYS*> GlobalDataZYS::QQUserList;
 map<string, BaseUserZYS*> GlobalDataZYS::WeChatUserList;
-
+string GlobalDataZYS::Permissions[5] = {"", "群主","管理员","群员","禁言中" };
 vector<string> GlobalDataZYS::Products;//产品号到产品名的映射
 BaseUserZYS *CurrentUser;
 

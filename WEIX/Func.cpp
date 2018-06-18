@@ -27,7 +27,7 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 //从文件读取时使用的回调函数,用来初始化一个用户类
 int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName) {
 	int i;
-	string a = argv[5];
+	string a = argv[5];//productcode
 	if (GlobalDataZYS::LastRECORDid <= argv[0])
 	{
 		GlobalDataZYS::LastRECORDid = argv[0];
@@ -68,6 +68,38 @@ int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName)
 	int ProductCode = atoi(argv[3]);
 	GlobalDataZYS::UserList[ProductCode][FromGB]->Friends.GetRelationShip(GlobalDataZYS::UserList[ProductCode][FromGB], ToGB);
 	printf("产品%d读取%s到%s的好友关系成功\n", ProductCode, FromGB.c_str(), ToGB.c_str());
+	return 0;
+}
+int GetGroupCallBack(void * NotUsed, int argc, char ** argv, char ** azColName)
+{
+	string Groupid = argv[1];
+	int ProductCode = atoi(argv[4]);
+	//如果群已经存在 则吧好友加上
+	if (GlobalDataZYS::Groups[ProductCode].find(Groupid)!= GlobalDataZYS::Groups[ProductCode].end())
+	{
+		GlobalDataZYS::Groups[ProductCode][Groupid]->List.insert(pair<string, string>(argv[2],argv[3]));
+		GlobalDataZYS::UserList[ProductCode][argv[2]]->Groups.List.insert(pair<string, string>(argv[1], argv[3]));
+		//->CreatRelationShip(GlobalDataZYS::UserList[ProductCode][argv[2]], argv[3]);
+		return 0;
+	}
+	//找不到 创建出来
+	if (GlobalDataZYS::LastGroupid <= Groupid)
+	{
+		String_Add(&GlobalDataZYS::LastGroupid);
+	}
+	switch (argv[4][0])
+	{
+	case '1':
+		//TODO 写完QQ群创建在这创建一个QQ群
+		break;
+	case '2':
+		GlobalDataZYS::Groups[2].insert(pair<string,BaseGroup*> (argv[1],new WeChatGroupZYS(argv)));
+		break;
+	default:
+		break;
+	}
+	GlobalDataZYS::Groups[ProductCode][Groupid]->List.insert(pair<string, string>(argv[2], argv[3]));
+	GlobalDataZYS::UserList[ProductCode][argv[2]]->Groups.List.insert(pair<string, string>(argv[1], argv[3]));
 	return 0;
 }
 //打开默认数据库
@@ -158,6 +190,10 @@ int init()
 	SqlString = "SELECT * FROM FRIEND";
 	Exe(SqlString, GetFriendCallBack);
 
+	//读取好友信息
+	SqlString = "SELECT * FROM GROUPS";
+	Exe(SqlString, GetGroupCallBack);
+
 	return 0;
 }
 //得到一个符合范围[MIN,MAX]的选项
@@ -169,6 +205,30 @@ int GetOption(int Min, int Max)
 		Option = _getch();
 	} while (Option - '0'<Min || Option - '0' > Max);
 	return Option - '0';
+}
+int GetBigOption(int Min, int Max)
+{
+	string Strop;
+	int Option;
+	while (1)
+	{
+		cin >> Strop;
+		if(Strop.size()>8)
+			continue;
+		
+		Option = atoi(Strop.c_str());
+		
+		if (Option <= Max && Option >= Min)
+		{
+			return Option;
+		}
+		else
+		{
+			continue;
+		}
+	}
+
+	return 0;
 }
 //输入密码提供的不显示效果
 string InputPwd()
@@ -208,6 +268,25 @@ string idToGlobalid(int ProductCode, string id)
 		return "";
 	else
 		return iterfind->first;
+}
+
+string GetCorrectGroup(int ProductCode)
+{
+	string Target_Globalid;
+	cout << "输入群号" << endl;
+	cin >> Target_Globalid;
+	while (GlobalDataZYS::Groups[ProductCode].find(Target_Globalid) == GlobalDataZYS::Groups[ProductCode].end())
+	{
+		cout << "不存在群号为" + Target_Globalid + "的群" << "按1重新输入,按2退出" << endl;
+		if (GetOption(1, 2) == 2)
+			return "";
+		else
+		{
+			cout << "输入群号" << endl;
+			cin >> Target_Globalid;
+		}
+	}
+	return Target_Globalid;
 }
 
 //GBK转UTF8(来源:CSDN)
@@ -282,10 +361,12 @@ int LoginView(int ProductCode)
 		}
 		if (GlobalDataZYS::UserList[ProductCode][Globalid]->LoginCheck())
 		{
+			GlobalDataZYS::CurrentUser = GlobalDataZYS::UserList[ProductCode][Globalid];
 			GlobalDataZYS::UserList[ProductCode][Globalid]->ShowFoos();
+			GlobalDataZYS::CurrentUser = NULL;
 			return 0;
 		}
-		
+		return 0;
 }
 //创建用户菜单
 int CreatUserView()

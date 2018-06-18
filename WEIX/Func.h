@@ -15,6 +15,8 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName);
 int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName);
 //读取好友使用的SQL回调
 int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName);
+//读取群关系使用的SQL回调函数
+int GetGroupCallBack(void *NotUsed, int argc, char **argv, char **azColName);
 //执行指定SQLITE语句
 int Exe(string SqlStr, int(*callbackfunc)(void *, int, char **, char **) = callback);
 //打开默认数据库
@@ -28,10 +30,15 @@ void String_Add(string *a);
 int init();
 //得到一个符合范围的选项
 int GetOption(int Min, int Max);
+//得到一个大范围的选项
+int GetBigOption(int Min,int Max);
 //输入密码提供的不显示效果
 string InputPwd();
-//
+//将id转换为gb
 string idToGlobalid(int ProductCode, string id);
+//获取同一GB的用户列表
+//验证群是否存在
+string GetCorrectGroup(int ProductCode);
 
 //GBK转UTF8(来源:CSDN)
 string GBKToUTF8(const char* strGBK);
