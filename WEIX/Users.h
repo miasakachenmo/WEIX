@@ -46,10 +46,11 @@ public:
 	static map<string, BaseUserZYS*> WeChatUserList;
 	static map<int, map<string, BaseGroup*>> Groups;//群们
 	static string CurrentUser;
-	static string Permissions[];
-	static map<string, function<BaseGroup*(char **argv)>> GroupFactory;//GroupType,函数 群工厂
+	static string Permissions[4][5];
+	static map<string, function<BaseGroup*(string *argv)>> GroupFactory;//GroupType,函数 群工厂
 	static map<int, function<int(BaseGroup* Group)>> GroupDecorater;//GroupType,函数 群装饰器
-	static string GroupTypeNames[];
+	static map<int, function<int(BaseGroup* Group)>> GroupUndecorater;//GroupType,函数 群装饰器
+	static vector<string> GroupTypeNames;
 };
 
 #pragma endregion
@@ -134,7 +135,7 @@ public:
 	//创建模式  ,  在基类中不执行文件操作 
 	BaseUserZYS();
 	//从数据库中初始化
-	BaseUserZYS(char **Attrs);
+	BaseUserZYS(string *Attrs);
 	//检查登陆 成功返回1 失败返回0
 	int LoginCheck();
 	//从群中被删除
@@ -183,7 +184,7 @@ public:
 	//微信注册
 	WeChatUserZYS();
 	//从数据库读取微信用户
-	WeChatUserZYS(char **Attrs);
+	WeChatUserZYS(string *Attrs);
 	//创建群的虚函数
 	virtual void CreatGroup();
 
@@ -203,7 +204,7 @@ public:
 	//static vector<int> FriendProductList;
 	//三个存储的共享静态成员
 	QQUserZYS();//QQ注册
-	QQUserZYS(char **Attrs);
+	QQUserZYS(string *Attrs);
 
 	virtual void CreatGroup();
 	//从群中被删除
@@ -222,7 +223,7 @@ class BaseGroup: virtual public FriendList,virtual public MenuInterface
 public:
 	//list的含义<GB,permissioncode>
 	BaseGroup();
-	BaseGroup(char **argvs);
+	BaseGroup(string *argvs);
 	string Groupid;
 	string GroupName;
 	string GroupType;
@@ -241,7 +242,7 @@ class  WeChatGroupZYS:virtual public BaseGroup,virtual public MenuInterface
 {
 public:
 	WeChatGroupZYS();
-	WeChatGroupZYS(char **argvs);
+	WeChatGroupZYS(string *argvs);
 	virtual void CreatMenuMap();
 	//读取群
 private:

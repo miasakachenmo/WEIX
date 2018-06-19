@@ -13,20 +13,36 @@
 using namespace std;
 bool Called = false;
 extern bool CanBack;
+int SqlCallCount = 0;
 class BaseUserZYS;
 #pragma region SQL函数
 int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 	Called = true;
 	int i;
 	for (i = 0; i<argc; i++) {
-		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+		if(argv[i]==NULL)
+			continue;
+		string temp = argv[i];
+		temp = UTF8ToGBK(argv[i]);
+		cout << azColName[i] << ":" <<temp << endl;
 	}
 	printf("\n");
 	return 0;
 }
 //从文件读取时使用的回调函数,用来初始化一个用户类
-int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName) {
+int CreatCallBack(void *NotUsed, int argc, char **argvs, char **azColName) {
 	int i;
+	string argv[10];
+	const char *fuck[10];
+	for (int i = 0; i <=7 ; i++)
+	{
+		argv[i] = argvs[i];
+	}
+	for (int i = 0; i <= 7; i++)
+	{
+		argv[i] = UTF8ToGBK(argv[i].c_str());
+	}
+
 	string a = argv[5];//productcode
 	if (GlobalDataZYS::LastRECORDid <= argv[0])
 	{
@@ -54,33 +70,41 @@ int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName) {
 	default:
 		break;
 	}
-	for (i = 0; i<argc; i++) {
-		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+	for (i = 0; i<=7; i++) {
+		cout << azColName[i] << ":" << argv[i]<<endl;
 	}
 	printf("\n");
 	return 0;
 }
 //读取好友使用的SQL回调
-int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName)
+int GetFriendCallBack(void *NotUsed, int argc, char **argvs, char **azColName)
 {
+	string argv[10];
+	const char *fuck[10];
+	for (int i = 0; i <= 3; i++)
+	{
+		argv[i] = argvs[i];
+		argv[i] = UTF8ToGBK(argv[i].c_str());
+	}
+
 	string FromGB = argv[1];
 	string ToGB = argv[2];
-	int ProductCode = atoi(argv[3]);
+	int ProductCode = atoi(argv[3].c_str());
 	GlobalDataZYS::UserList[ProductCode][FromGB]->Friends.GetRelationShip(GlobalDataZYS::UserList[ProductCode][FromGB], ToGB);
 	printf("产品%d读取%s到%s的好友关系成功\n", ProductCode, FromGB.c_str(), ToGB.c_str());
 	return 0;
 }
-int GetGroupCallBack(void * NotUsed, int argc, char ** argv, char ** azColName)
+int GetGroupCallBack(void * NotUsed, int argc, char ** argvs, char ** azColName)
 {
-	string debug[5];
-	for (int i = 0; i <= 4; i++)
+	string argv[10];
+	const char *fuck[10];
+	for (int i = 0; i <= 6; i++)
 	{
-		debug[i] =argv[i];
-	
+		argv[i] =argvs[i];
+		argv[i]= UTF8ToGBK(argv[i].c_str());
 	}
-	
 	string Groupid = argv[1];
-	int ProductCode = atoi(argv[4]);
+	int ProductCode = atoi(argv[4].c_str());
 	//如果群已经存在 则吧好友加上
 	if (GlobalDataZYS::Groups[ProductCode].find(Groupid)!= GlobalDataZYS::Groups[ProductCode].end())
 	{
@@ -98,6 +122,21 @@ int GetGroupCallBack(void * NotUsed, int argc, char ** argv, char ** azColName)
 	GlobalDataZYS::Groups[ProductCode].insert(pair<string, BaseGroup*>(argv[1],  GlobalDataZYS::GroupFactory[TypeCode+"0"](argv) ));//利用工厂模式的类反射创建一个群
 	GlobalDataZYS::Groups[ProductCode][Groupid]->List.insert(pair<string, string>(argv[2], argv[3]));
 	GlobalDataZYS::UserList[ProductCode][argv[2]]->Groups.List.insert(pair<string, string>(argv[1], argv[3]));
+	return 0;
+}
+//展示的回调函数
+int ShowCallBack(void * NotUsed, int argc, char ** argv, char ** azColName)
+{
+	SqlCallCount++;
+	cout << SqlCallCount << " .";
+	int i;
+	for (i = 0; i < argc; i++) {
+		string temp = argv[i];
+		temp = UTF8ToGBK(argv[i]);
+		cout <<temp << endl;
+	}
+	printf("\n");
+	system("pause");
 	return 0;
 }
 //打开默认数据库
@@ -119,6 +158,8 @@ sqlite3* OpenDb()
 //执行指定SQLITE语句
 int Exe(string SqlStr, int(*callbackfunc)(void *, int, char **, char **))
 {
+
+	//string UtfStr = GBKToUTF8(SqlStr.c_str());//改成UTF格式 防止中文乱码
 	sqlite3 *db = OpenDb();
 	char *zErrMsg = 0;
 	int rc = 0;
@@ -182,39 +223,69 @@ int init()
 
 	//装饰器类的初始化
 	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(0, [](BaseGroup*) {
+		return 0; }));
+	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(1,[](BaseGroup* Group) {
+		Group->AddFunc("布置作业",[Group]() {
+			Group->PermissionCheck(GlobalDataZYS::CurrentUser, "2");
+			string HomeWork;
+			cout << "输入作业内容" << endl;
+			cin >> HomeWork;
+			string Sql = "UPDATE GROUPS SET EXTRA ='" + HomeWork + "' WHERE PRODUCTCODE='" + to_string(Group->ProductCode) + "' AND GROUPID='" + Group->Groupid + "' AND PERMISSIONCODE>2;";
+			Exe(Sql);
+			return 0; });
+		Group->AddFunc("查看作业", [Group]() {
+			string Sql = "SELECT EXTRA  FROM GROUPS WHERE GROUPID='" + Group->Groupid + "' AND GB='" + GlobalDataZYS::CurrentUser + "' AND PRODUCTCODE='" + to_string(Group->ProductCode) + "';";
+			SqlCallCount = 0;
+			Exe(Sql,ShowCallBack);
+			Sql = "Update GROUPS SET EXTRA=null WHERE  GROUPID='" + Group->Groupid + "' AND GB='" + GlobalDataZYS::CurrentUser + "' AND PRODUCTCODE='" + to_string(Group->ProductCode) + "';";
+			Exe(Sql);
+			return 0; });
+		return 0; }));
+	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(2, [](BaseGroup *Group) {
+		Group->AddFunc("教育特色函数", []() {return 0; });
+		return 0; }));
+	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(3, [](BaseGroup*Group) {
 
 		return 0; }));
-	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(1,[](BaseGroup*) {
-		
+	//反装饰器的初始化
+	GlobalDataZYS::GroupUndecorater.insert(pair<int, function<int(BaseGroup*)>>(0, [](BaseGroup*Group) {
 		return 0; }));
-	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(2, [](BaseGroup*) {
-
+	GlobalDataZYS::GroupUndecorater.insert(pair<int, function<int(BaseGroup*)>>(1, [](BaseGroup*Group) {
+		Group->Menu.erase(Group->Menu.find("家校特色函数"));
 		return 0; }));
-	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(3, [](BaseGroup*) {
+	GlobalDataZYS::GroupUndecorater.insert(pair<int, function<int(BaseGroup*)>>(2, [](BaseGroup*Group) {
+		Group->Menu.erase(Group->Menu.find("教育特色函数"));
+		return 0; }));
+	GlobalDataZYS::GroupUndecorater.insert(pair<int, function<int(BaseGroup*)>>(3, [](BaseGroup*Group) {
 
 		return 0; }));
 	//工厂模式的初始化
-	GlobalDataZYS::GroupFactory.insert(pair<string, function<BaseGroup*(char **argv)>>("10", [](char **argv) {
-		BaseGroup* Res;
-		if(argv==0)
-			Res = new WeChatGroupZYS();
-		else
-		{
-			Res = new WeChatGroupZYS(argv);
-			GlobalDataZYS::GroupDecorater[argv[6][1]-'0'](Res);//装饰
-		}
-		//TODO QQGROUP
-		return Res; }));
-	GlobalDataZYS::GroupFactory.insert(pair<string, function<BaseGroup*(char **argv)>>("20", [](char **argv) {
+	GlobalDataZYS::GroupFactory.insert(pair<string, function<BaseGroup*(string *argv)>>("10", [](string *argv) {
 		BaseGroup* Res;
 		if (argv == 0)
-			Res = new WeChatGroupZYS();
-		else
 		{
-			Res = new WeChatGroupZYS(argv);
-			char debug = argv[6][1];
-			GlobalDataZYS::GroupDecorater[argv[6][1] - '0'](Res);//装饰
+			Res = new WeChatGroupZYS();
+			return Res;
 		}
+		Res = new WeChatGroupZYS(argv);
+		GlobalDataZYS::GroupDecorater[argv[6][1]-'0'](Res);//装饰
+		//TODO QQGROUP
+		return Res; }));
+	GlobalDataZYS::GroupFactory.insert(pair<string, function<BaseGroup*(string *argv)>>("20", [](string *argv) {
+		BaseGroup* Res;
+		if (argv == 0)
+		{
+			Res = new WeChatGroupZYS();
+			return Res;
+		}
+		string debug[7];
+		for (int i = 0; i < 7; i++)
+		{
+			debug[i] = argv[i];
+		}
+		Res = new WeChatGroupZYS(argv);
+		char debuga = argv[6][1];
+		GlobalDataZYS::GroupDecorater[argv[6][1] - '0'](Res);//装饰
 		return Res; }));
 
 
@@ -325,9 +396,6 @@ int GetBindUsers( BaseUserZYS  * User, vector<BaseUserZYS*>& BindUserList)
 	}
 	return 0;
 }
-
-
-
 
 string GetCorrectGroup(int ProductCode)
 {

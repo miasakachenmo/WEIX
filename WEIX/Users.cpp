@@ -1,6 +1,9 @@
 #pragma once
 #include "Users.h"
 #include <set>
+#include <iostream>
+#include <string>
+using namespace std;
 //---------------------日期类-------------------------------
 DateZYS::DateZYS()
 {
@@ -140,7 +143,7 @@ BaseUserZYS::BaseUserZYS() :Birthday("生日"), ReGistDate("注册日")
 	CreatMenuMap();
 }
 //从文件读取通用部分
-BaseUserZYS::BaseUserZYS(char **Attrs) :Birthday("生日"), ReGistDate("注册日") //从数据库中初始化
+BaseUserZYS::BaseUserZYS(string *Attrs) :Birthday("生日"), ReGistDate("注册日") //从数据库中初始化
 {
 	RECORDid = Attrs[0];
 	Global_id = Attrs[1];
@@ -402,7 +405,7 @@ WeChatUserZYS::WeChatUserZYS() :BaseUserZYS()//QQ注册
 	CreatMenuMap();
 }
 //从本地读取微信用户
-WeChatUserZYS::WeChatUserZYS(char **Attrs) :BaseUserZYS(Attrs)
+WeChatUserZYS::WeChatUserZYS(string *Attrs) :BaseUserZYS(Attrs)
 {
 	ProductCode = 2;
 	id = Attrs[6];
@@ -456,7 +459,7 @@ QQUserZYS::QQUserZYS() :BaseUserZYS()
 	Exe(Sqlstr);
 }
 //从文件读取QQ用户
-QQUserZYS::QQUserZYS(char **Attrs) :BaseUserZYS(Attrs)
+QQUserZYS::QQUserZYS(string *Attrs) :BaseUserZYS(Attrs)
 {
 	ProductCode = 1;
 	id = Attrs[6];
@@ -496,17 +499,16 @@ void MenuInterface::AddFunc(string FooName, function<int()> Foo)
 int MenuInterface::ShowFoos()
 {
 	map<string, function<int()>>::iterator iter;
-	string *Names = new string[Menu.size() + 1];
+	string *Names = new string[Menu.size() + 5];
 	int i = 0;
-	for (iter = Menu.begin(); iter != Menu.end(); iter++, i++)
-	{
-		cout << i << "." << iter->first << endl;
-		Names[i] = iter->first;
-	}
 	//打印函数列表
 	while (true)
 	{
 		system("cls");
+		for (iter = Menu.begin(),i=0; iter != Menu.end(); iter++, i++)
+		{
+			Names[i] = iter->first;
+		}
 		for (int j = 0; j < i; j++) cout << j << "." << Names[j] << endl;
 		cout << i << ".退出" << endl;
 		//TODO 改一下这里
@@ -530,11 +532,11 @@ BaseGroup::BaseGroup()
 	CreatMenuMap();
 }
 
-BaseGroup::BaseGroup(char ** argvs)
+BaseGroup::BaseGroup(string * argvs)
 {
 	Groupid = argvs[1];
 	GroupName = argvs[5];
-	ProductCode = atoi(argvs[4]);
+	ProductCode = atoi(argvs[4].c_str());
 	GroupType = argvs[6];
 	CreatRelationShip(GlobalDataZYS::UserList[ProductCode][argvs[2]], argvs[3]);//把这个用户加进去
 	CreatMenuMap();
@@ -579,7 +581,7 @@ int BaseGroup::ShowList(int ProductCode)
 	map<string, string>::iterator iter = List.begin();
 	for (int i = 1;iter!=List.end(); iter++,i++)
 	{
-		cout << i  << ". " << GlobalDataZYS::UserList[ProductCode][iter->first]->Name <<"  "<< GlobalDataZYS::Permissions[atoi(iter->second.c_str())]<< endl;
+		cout << i  << ". " << GlobalDataZYS::UserList[ProductCode][iter->first]->Name <<"  "<< GlobalDataZYS::Permissions[GlobalDataZYS::Groups[ProductCode][Groupid]->GroupType[1] - '0'][atoi(iter->second.c_str())]<< endl;
 	}
 	system("pause");
 	return 0;
@@ -591,7 +593,7 @@ int BaseGroup::PermissionCheck(string UserGB, string MinPermission)
 		return 1;
 	else
 	{
-		cout << "您的权限不足!此操作需要 " << GlobalDataZYS::Permissions[atoi(MinPermission.c_str())] << " 权限";
+		cout << "您的权限不足!此操作需要 " << GlobalDataZYS::Permissions[GlobalDataZYS::Groups[ProductCode][Groupid]->GroupType[1] - '0'][atoi(MinPermission.c_str())] << " 权限";
 		return 0;
 	}
 
@@ -603,7 +605,41 @@ void BaseGroup::CreatMenuMap()
 		ShowList(ProductCode);
 		return 0;
 	});
-}
+	AddFunc("改变群类型", [this]() {
+		cout << "当前群类型为 " << GlobalDataZYS::GroupTypeNames[GroupType[1] - '0'] << endl;
+		cout << "输入你想修改为的群类型"<<endl;
+		int j = 1;
+		for (int i = 0; i <  GlobalDataZYS::GroupTypeNames.size();i++)
+		{
+			if(i==GroupType[1]-'0')
+				continue;
+			else
+			{
+				cout << j << ". " << GlobalDataZYS::GroupTypeNames[i] << endl;
+				j++;
+			}
+		}
+		cout << j << ". " << "取消修改" << endl;
+		
+		int Opt=GetOption(1, j);
+		if (j == 0)
+		{
+			return 0;
+		}
+		else
+		{
+			int debug = GroupType[1] - '0';
+			GlobalDataZYS::GroupUndecorater[GroupType[1]-'0'](this);
+			GroupType = to_string(ProductCode * 10 + Opt);
+		}
+		GlobalDataZYS::GroupDecorater[GroupType[1] - '0'](this);
+		cout << "群类型已经成功修改为" << GlobalDataZYS::GroupTypeNames[Opt]<<endl;
+		string Sql = "UPDATE GROUPS SET GROUPTYPE='"+GroupType+"' WHERE GROUPID='"+Groupid+"' AND PRODUCTCODE='"+to_string(ProductCode)+"' ;";
+		Exe(Sql);
+		//菜单刷新:
+		return 0;
+	});
+}//创建菜单!!重要
 
 void BaseGroup::SetPermissionCode(string TargetGB,string NewCode)
 {
@@ -660,17 +696,13 @@ BaseGroup* BaseGroup::CreatGroup(BaseUserZYS * GroupMaster)
 	//插入数据库
 	return Temp;
 }
-/*WeChatGroupZYS::WeChatGroupZYS(char ** attrs)
-{
-	Groupid = attrs[1];
-	GroupName = attrs[5];
-}*/
+
 
 WeChatGroupZYS::WeChatGroupZYS() :BaseGroup()
 {
 	CreatMenuMap();
 }
-WeChatGroupZYS::WeChatGroupZYS(char ** argvs) : BaseGroup(argvs)
+WeChatGroupZYS::WeChatGroupZYS(string * argvs) : BaseGroup(argvs)
 {
 	CreatMenuMap();
 }
@@ -749,7 +781,7 @@ int GroupList::ShowList(int ProductCode)
 	cout << "    群名     群号      状态"<<endl;
 	for (i = List.begin(); i != List.end(); i++,Count++)
 	{
-		cout << Count << "." << GlobalDataZYS::Groups[ProductCode][i->first]->GroupName << "    " << i->first << "  " << GlobalDataZYS::Permissions[atoi(i->second.c_str())] << endl;
+		cout << Count << "." << GlobalDataZYS::Groups[ProductCode][i->first]->GroupName << "    " << i->first << "  " << GlobalDataZYS::Permissions[GlobalDataZYS::Groups[ProductCode][i->first]->GroupType[1] - '0'][atoi(i->second.c_str())] << endl;
 		Entrence.push_back(GlobalDataZYS::Groups[ProductCode][i->first]);
 	}
 	cout << "输入0退出,输入序号进入群"<<endl;

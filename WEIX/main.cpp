@@ -22,19 +22,15 @@ map<int, map<string, BaseGroup*>> GlobalDataZYS::Groups;//群们
 string GlobalDataZYS::CurrentUser = "";
 map<string, BaseUserZYS*> GlobalDataZYS::QQUserList;
 map<string, BaseUserZYS*> GlobalDataZYS::WeChatUserList;
-string GlobalDataZYS::Permissions[5] = {"", "群主","管理员","群员","禁言中" };
+string GlobalDataZYS::Permissions[4][5] = { {"", "群主","管理员","群员","禁言中" } ,{ "", "校长","老师","学生","禁言中" }
+,{ "", "家长","孩子","群员","禁言中" } ,{ "", "群主","管理员","群员","禁言中" } };
 vector<string> GlobalDataZYS::Products;//产品号到产品名的映射
-map<string, function<BaseGroup*(char **argv)>> GlobalDataZYS::GroupFactory;
+map<string, function<BaseGroup*(string *argv)>> GlobalDataZYS::GroupFactory;
 map<int, function<int(BaseGroup* Group)>> GlobalDataZYS::GroupDecorater;
-string GlobalDataZYS::GroupTypeNames[] = {"","家校群","亲子群"};
+vector<string> GlobalDataZYS::GroupTypeNames = {"普通群","师生群","亲子群",""};
+map<int, function<int(BaseGroup* Group)>> GlobalDataZYS::GroupUndecorater;
 #pragma endregion
 
-
-//TODO 密码的PY实现
-//TODO 把列表类抽象出来
-//TODO 菜单们 优化使用逻辑 比如注册后显示全部信息
-//TODO 登陆菜单
-//TODO GROUP类和好友类的合并?
 int main()
 {
 	init();

@@ -17,8 +17,12 @@ int CreatCallBack(void *NotUsed, int argc, char **argv, char **azColName);
 int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName);
 //读取群关系使用的SQL回调函数
 int GetGroupCallBack(void *NotUsed, int argc, char **argv, char **azColName);
+//用于展示的回调函数
+int ShowCallBack(void * NotUsed, int argc, char ** argvs, char ** azColName);
+
 //执行指定SQLITE语句
-int Exe(string SqlStr, int(*callbackfunc)(void *, int, char **, char **) = callback);
+int Exe(string SqlStr, int(*callbackfunc)(void *, int, char **, char **)=callback);
+
 //打开默认数据库
 sqlite3* OpenDb();
 #pragma endregion
