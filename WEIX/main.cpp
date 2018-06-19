@@ -19,14 +19,14 @@ string GlobalDataZYS::LastWeChatid = "999";
 string GlobalDataZYS::LastGroupid = "1234567";
 map<int, map<string, BaseUserZYS*> > GlobalDataZYS::UserList;
 map<int, map<string, BaseGroup*>> GlobalDataZYS::Groups;//群们
-BaseUserZYS* GlobalDataZYS::CurrentUser = NULL;
+string GlobalDataZYS::CurrentUser = "";
 map<string, BaseUserZYS*> GlobalDataZYS::QQUserList;
 map<string, BaseUserZYS*> GlobalDataZYS::WeChatUserList;
 string GlobalDataZYS::Permissions[5] = {"", "群主","管理员","群员","禁言中" };
 vector<string> GlobalDataZYS::Products;//产品号到产品名的映射
-BaseUserZYS *CurrentUser;
-
-
+map<string, function<BaseGroup*(char **argv)>> GlobalDataZYS::GroupFactory;
+map<int, function<int(BaseGroup* Group)>> GlobalDataZYS::GroupDecorater;
+string GlobalDataZYS::GroupTypeNames[] = {"","家校群","亲子群"};
 #pragma endregion
 
 
@@ -41,6 +41,7 @@ int main()
 	system("cls");
 	vector <function<int()>> Options;
 	Options.push_back(CreatUserView);
+	string b;
 	Options.push_back([]() {
 		LoginView();
 		return 0; });

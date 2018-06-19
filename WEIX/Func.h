@@ -1,13 +1,13 @@
 #pragma once
+#include "Users.h"
 #include<iostream>
 #include<algorithm>
 #include<string>
 #include<vector>
 #include<map>
 #include "sqlite3.h"
-#include "Users.h"
 using namespace std;
-
+class BaseUserZYS;
 #pragma region SQL函数
 //SQL回调函数
 int callback(void *NotUsed, int argc, char **argv, char **azColName);
@@ -24,6 +24,7 @@ sqlite3* OpenDb();
 #pragma endregion
 
 #pragma region 功能函数
+
 //让一个数字字符串自加1
 void String_Add(string *a);
 //初始化函数!!!!
@@ -37,6 +38,7 @@ string InputPwd();
 //将id转换为gb
 string idToGlobalid(int ProductCode, string id);
 //获取同一GB的用户列表
+int GetBindUsers(BaseUserZYS  * User,vector<BaseUserZYS*>  &BindUserList);
 //验证群是否存在
 string GetCorrectGroup(int ProductCode);
 

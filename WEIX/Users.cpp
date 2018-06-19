@@ -1,5 +1,6 @@
 #pragma once
 #include "Users.h"
+#include <set>
 //---------------------»’∆⁄¿‡-------------------------------
 DateZYS::DateZYS()
 {
@@ -48,7 +49,7 @@ int FriendList::CreatRelationShip(BaseUserZYS* Master, string Target_Globalid)
 {
 
 	//—È÷§ «∑Ò“—æ≠¥Ê‘⁄
-	string ScureSqt = "SELECT * FROM FRIEND WHERE FROMGB='" + Master->GetGlobalid() + "' AND TOGB='" + Target_Globalid + "';";
+	string ScureSqt = "SELECT * FROM FRIEND WHERE FROMGB='" + Master->GetGlobalid() + "' AND TOGB='" + Target_Globalid + "' AND PRODUCTCODE='"+to_string( Master->ProductCode)+"';";
 	if (Exe(ScureSqt) == 1)
 	{
 		printf("∫√”—πÿœµ“—¥Ê‘⁄!\n");
@@ -84,6 +85,7 @@ int FriendList::ShowList(int ProductCode)
 }
 
 //«ø»ı∞Û∂®¿‡-----------------------------------------------------------------------------------
+//»ı∞Û∂®:≤ª±‰id
 int IWeakBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
 {
 	
@@ -93,9 +95,12 @@ int IWeakBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
 	Exe(SQL);
 	SQL = "UPDATE FRIEND SET TOGB='" + Taget_Globalid + "' WHERE PRODUCTCODE='" + to_string(Master->ProductCode) + "' AND TOGB='" + Orinid + "'";
 	Exe(SQL);
+	SQL = "UPDATE GROUPS SET GB='" + Taget_Globalid + "' WHERE PRODUCTCODE='" + to_string(Master->ProductCode) + "' AND TOGB='" + Orinid + "'";
+	Exe(SQL);
 	Master->OnUpDate();
 	return 0;
 }
+//«ø∞Û∂®:±‰id
 int IStrongBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
 {
 	string Orinid = Master->Global_id;
@@ -105,6 +110,9 @@ int IStrongBindWithQQUserZYS::BindTo(BaseUserZYS* Master, string Taget_Globalid)
 	SQL = "UPDATE FRIEND SET TOGB='" + Taget_Globalid + "' WHERE PRODUCTCODE='" + to_string(Master->ProductCode) + "' AND TOGB='" + Orinid + "'";
 	Exe(SQL);
 	Master->id = GlobalDataZYS::UserList[1][Taget_Globalid]->id;
+	SQL= "UPDATE GROUPS SET GB='" + Taget_Globalid + "' WHERE PRODUCTCODE='" + to_string(Master->ProductCode) + "' AND TOGB='" + Orinid + "'";
+	Exe(SQL);
+	Master->OnUpDate();
 	return 0;
  }
 
@@ -242,9 +250,33 @@ int BaseUserZYS::OnUpDate()
 
 void BaseUserZYS::CreatMenuMap()
 {
+
+	if (GlobalDataZYS::UserList[1].find(Global_id) == GlobalDataZYS::UserList[1].end())
+	{
+		AddFunc("∞Û∂®µΩQQ", [this]() {
+			string QQid;
+			string QQGb;
+			while (1)
+			{
+				cout << " ‰»ÎœÎ∞Û∂®µƒQQ∫≈"<<endl;
+				cin >> QQid;
+				QQGb = idToGlobalid(1, QQid);
+				if (QQGb == "")
+				{
+					cout << " ‰»ÎQQ∫≈”–ŒÛ!,∞¥0ÕÀ≥ˆ,∞¥1÷ÿ ‰" << endl;
+					if (GetOption(0, 1) == 0)
+						return 0;
+				}
+				else 
+					break;
+			}
+			BindTo(this, QQGb);
+			return 0; });
+	}
 	AddFunc("µ«¬ΩµΩ∆‰À˚∑˛ŒÒ", [this]() {
 		int size = GlobalDataZYS::UserList.size();
-		vector<BaseUserZYS*> BindUserList;
+		vector<BaseUserZYS*>BindUserList;
+		GetBindUsers(this, BindUserList);
 		int Ops = 1;
 		//‘⁄À˘”–≤˙∆∑÷–—∞’“’‚∏ˆ»À
 		for (int i = 1; i <= size; i++)
@@ -317,8 +349,40 @@ void BaseUserZYS::CreatMenuMap()
 		return 0;
 	});
 	AddFunc("¥”∆‰À˚∑˛ŒÒÃÌº”∫√”—", [this]() {
-		vector<string> Friends;
-		
+		set<string> AllFriends;
+		map<int, string> FindedFriends;
+		vector<BaseUserZYS*> BindUser;
+		GetBindUsers(this, BindUser);
+		//±È¿˙∏’’“µΩµƒ∞Û∂®µƒ”√ªß
+		for (int i = 0; i < BindUser.size(); i++)
+		{
+			//±È¿˙√ø∏ˆ’“µΩµƒ”√ªßµƒ∫√”—¡–±Ì
+			map<string, string>::iterator j;
+			for (j = BindUser[i]->Friends.List.begin(); j != BindUser[i]->Friends.List.end(); j++)
+			{
+				AllFriends.insert(j->first);
+			}
+		}
+		set<string>::iterator i= AllFriends.begin();
+		int j=1;
+		for (; i != AllFriends.end(); i++)
+		{
+			if (Friends.List.find(*i) == Friends.List.end()&&GlobalDataZYS::UserList[ProductCode].find(*i)!= GlobalDataZYS::UserList[ProductCode].end())//√ª”–’“µΩ«“¥Ê‘⁄
+			{
+				cout << j << ".  " << GlobalDataZYS::UserList[ProductCode][*i]->Name << endl;
+				FindedFriends.insert(pair<int, string>(j, *i));
+				j++;
+
+			}
+		}
+		while (true)
+		{
+			cout << " ‰»Îƒ„œÎº”»Îµƒ∫√”—,∞¥0ÕÀ≥ˆ"<<endl;
+			int Option = GetBigOption(0, j - 1);
+			if (Option == 0)
+				return 0;
+			Friends.CreatRelationShip(this, FindedFriends[Option]);
+		}
 		return 0 ; });
 
 }
@@ -375,6 +439,7 @@ void WeChatUserZYS::CreatMenuMap()
 	AddFunc("»∫¡–±Ì", [this]() {
 		Groups.ShowList(ProductCode);
 		return 0; });
+	
 
 }
 #pragma endregion
@@ -470,6 +535,7 @@ BaseGroup::BaseGroup(char ** argvs)
 	Groupid = argvs[1];
 	GroupName = argvs[5];
 	ProductCode = atoi(argvs[4]);
+	GroupType = argvs[6];
 	CreatRelationShip(GlobalDataZYS::UserList[ProductCode][argvs[2]], argvs[3]);//∞—’‚∏ˆ”√ªßº”Ω¯»•
 	CreatMenuMap();
 }
@@ -492,8 +558,8 @@ int BaseGroup::CreatRelationShip(BaseUserZYS * Target, string PermissionCode)//’
 	}
 	//TODO:—È÷§ «∑Ò”–’‚∏ˆ»∫ —È÷§∏ˆP ’‚æÕ «»∫µƒ∑Ω∑®,—È÷§”¶∏√º”‘⁄”√ªß¿‡÷–
 	//»Ù≤ª¥Ê‘⁄‘Úµ˜”√ ˝æ›ø‚¥ÊΩ¯»•
-	string SQL = "INSERT INTO GROUPS(GB,GROUPID,PRODUCTCODE,PERMISSIONCODE,GROUPNAME)"\
-		"VALUES('" + Target->GetGlobalid() + "', '" + Groupid + "', '" + to_string(Target->ProductCode) + "','" + PermissionCode + "','"+GlobalDataZYS::Groups[Target->ProductCode][Groupid]->GroupName+"');";
+	string SQL = "INSERT INTO GROUPS(GB,GROUPID,PRODUCTCODE,PERMISSIONCODE,GROUPNAME,GROUPTYPE)"\
+		"VALUES('" + Target->GetGlobalid() + "', '" + Groupid + "', '" + to_string(Target->ProductCode) + "','" + PermissionCode + "','"+GlobalDataZYS::Groups[Target->ProductCode][Groupid]->GroupName+"','"+ GlobalDataZYS::Groups[Target->ProductCode][Groupid]->GroupType +"');";
 	Exe(SQL);
 	//∞—»∫≤Â»ÎµΩ”√ªßµƒ¡–±Ì¿Ô
 	Target->Groups.List.insert(pair<string, string>(Groupid,PermissionCode));
@@ -519,12 +585,16 @@ int BaseGroup::ShowList(int ProductCode)
 	return 0;
 }
 //∑˚∫œ∑µªÿ1,≤ª∑˚∫œ∑µªÿ0
-int BaseGroup::PermissionCheck(BaseUserZYS * User, string MinPermission)
+int BaseGroup::PermissionCheck(string UserGB, string MinPermission)
 {
-	if (this->List[User->GetGlobalid()] <= MinPermission)
+	if (this->List[UserGB] <= MinPermission)
 		return 1;
-	else 
+	else
+	{
+		cout << "ƒ˙µƒ»®œﬁ≤ª◊„!¥À≤Ÿ◊˜–Ë“™ " << GlobalDataZYS::Permissions[atoi(MinPermission.c_str())] << " »®œﬁ";
 		return 0;
+	}
+
 }
 
 void BaseGroup::CreatMenuMap()
@@ -574,9 +644,9 @@ void BaseGroup::SetAdm()
 
 BaseGroup* BaseGroup::CreatGroup(BaseUserZYS * GroupMaster)
 {
-	BaseGroup *Temp = new BaseGroup;
+	BaseGroup *Temp = GlobalDataZYS::GroupFactory[to_string(GroupMaster->ProductCode*10)](0);
+	Temp->GroupType = to_string(GroupMaster->ProductCode * 10);
 	Temp->Groupid = GlobalDataZYS::LastGroupid;
-
 	cout << " ‰»Î»∫√˚≥∆" << endl;
 	cin >> Temp->GroupName;
 	//cout << " ‰»Î»∫¿‡–Õ" << endl;
@@ -596,7 +666,51 @@ BaseGroup* BaseGroup::CreatGroup(BaseUserZYS * GroupMaster)
 	GroupName = attrs[5];
 }*/
 
+WeChatGroupZYS::WeChatGroupZYS() :BaseGroup()
+{
+	CreatMenuMap();
+}
+WeChatGroupZYS::WeChatGroupZYS(char ** argvs) : BaseGroup(argvs)
+{
+	CreatMenuMap();
+}
 
+void WeChatGroupZYS::CreatMenuMap()
+{
+	//–Ë«Û:π‹¿Ì‘±
+
+	//TODO “≤–Ì’‚¿Ôø…“‘∏¥”√
+	AddFunc("Ãﬂ»À", [this]() {
+		if (!PermissionCheck(GlobalDataZYS::CurrentUser, "2"))
+			return 0;
+		ShowList(ProductCode);
+		cout << "—°‘Ò“ª∏ˆ»ÀÃﬂµÙ, ‰»Î–Ú∫≈" << endl;
+		int Option = GetBigOption(1, List.size());
+		map<string, string>::iterator i,Deliter;
+		int Index = 1;
+		for (i = List.begin(); Index != Option; Index++, i++);
+		string Sql = "DELETE FROM GROUPS WHERE GB='" + i->first + "' AND PRODUCTCODE='" + to_string(ProductCode) + "' AND GROUPID ='" + Groupid + "';";
+		Exe(Sql);
+		//À´œÚ…æ≥˝ ±Ø…Àµƒπ  ¬23333
+		GlobalDataZYS::UserList[ProductCode][i->first]->Groups.List.erase(GlobalDataZYS::UserList[ProductCode][i->first]->Groups.List.find(Groupid));
+		List.erase(i);
+		return 0;
+	});
+	AddFunc("…Ë÷√π‹¿Ì‘±", [this]() {
+		if (PermissionCheck(GlobalDataZYS::CurrentUser, "2"))
+			return 0;
+		ShowList(ProductCode);
+		cout << "—°‘Ò“ª∏ˆ»À≥…Œ™π‹¿Ì‘±, ‰»Î–Ú∫≈"<<endl;
+		int Option = GetBigOption(1, List.size());
+		map<string, string>::iterator i;
+		int Index = 1;
+		for (i = List.begin(); Index != Option;Index++,i++);
+		
+		SetPermissionCode(i->first, "2");
+		cout << "”√ªß " << GlobalDataZYS::UserList[ProductCode][i->first]->Name << "“—æ≠±ª…Ë÷√Œ™π‹¿Ì‘±!" << endl;
+		return 0;
+	});
+}
 
 #pragma endregion
 
@@ -665,28 +779,3 @@ int GroupList::ShowList(int ProductCode)
 	return 0;
 }
 
-WeChatGroupZYS::WeChatGroupZYS() :BaseGroup()
-{
-
-}
-WeChatGroupZYS::WeChatGroupZYS(char ** argvs):BaseGroup(argvs)
-{
-}
-
-void WeChatGroupZYS::CreatMenuMap()
-{
-	//–Ë«Û:π‹¿Ì‘±
-	if (PermissionCheck(GlobalDataZYS::CurrentUser, "2"))
-		AddFunc("Ãﬂ»À", [this]() {
-
-		ShowList(ProductCode);
-		return 0;
-		});
-
-	if (PermissionCheck(GlobalDataZYS::CurrentUser, "2"))
-		AddFunc("…Ë÷√π‹¿Ì‘±", [this]() {
-		
-
-		return 0;
-	});
-}

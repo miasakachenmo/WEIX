@@ -45,9 +45,11 @@ public:
 	static map<string, BaseUserZYS*> QQUserList;
 	static map<string, BaseUserZYS*> WeChatUserList;
 	static map<int, map<string, BaseGroup*>> Groups;//群们
-	static BaseUserZYS* CurrentUser;
+	static string CurrentUser;
 	static string Permissions[];
-	
+	static map<string, function<BaseGroup*(char **argv)>> GroupFactory;//GroupType,函数 群工厂
+	static map<int, function<int(BaseGroup* Group)>> GroupDecorater;//GroupType,函数 群装饰器
+	static string GroupTypeNames[];
 };
 
 #pragma endregion
@@ -223,11 +225,12 @@ public:
 	BaseGroup(char **argvs);
 	string Groupid;
 	string GroupName;
+	string GroupType;
 	int ProductCode;
 	virtual int CreatRelationShip(BaseUserZYS *Target, string PermissionCode);
 	virtual int GetRelationShip(BaseUserZYS *Target, string PermissionCode);
 	virtual int ShowList(int ProductCode);
-	virtual int PermissionCheck(BaseUserZYS* User,string MinPermission);
+	virtual int PermissionCheck(string UserGB,string MinPermission);
 	virtual void CreatMenuMap();
 	virtual void SetPermissionCode(string TargetGB,string NewCode);
 	virtual void SetAdm();

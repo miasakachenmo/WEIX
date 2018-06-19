@@ -13,7 +13,7 @@
 using namespace std;
 bool Called = false;
 extern bool CanBack;
-
+class BaseUserZYS;
 #pragma region SQL函数
 int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 	Called = true;
@@ -72,6 +72,13 @@ int GetFriendCallBack(void *NotUsed, int argc, char **argv, char **azColName)
 }
 int GetGroupCallBack(void * NotUsed, int argc, char ** argv, char ** azColName)
 {
+	string debug[5];
+	for (int i = 0; i <= 4; i++)
+	{
+		debug[i] =argv[i];
+	
+	}
+	
 	string Groupid = argv[1];
 	int ProductCode = atoi(argv[4]);
 	//如果群已经存在 则吧好友加上
@@ -87,17 +94,8 @@ int GetGroupCallBack(void * NotUsed, int argc, char ** argv, char ** azColName)
 	{
 		String_Add(&GlobalDataZYS::LastGroupid);
 	}
-	switch (argv[4][0])
-	{
-	case '1':
-		//TODO 写完QQ群创建在这创建一个QQ群
-		break;
-	case '2':
-		GlobalDataZYS::Groups[2].insert(pair<string,BaseGroup*> (argv[1],new WeChatGroupZYS(argv)));
-		break;
-	default:
-		break;
-	}
+	string TypeCode = argv[4];
+	GlobalDataZYS::Groups[ProductCode].insert(pair<string, BaseGroup*>(argv[1],  GlobalDataZYS::GroupFactory[TypeCode+"0"](argv) ));//利用工厂模式的类反射创建一个群
 	GlobalDataZYS::Groups[ProductCode][Groupid]->List.insert(pair<string, string>(argv[2], argv[3]));
 	GlobalDataZYS::UserList[ProductCode][argv[2]]->Groups.List.insert(pair<string, string>(argv[1], argv[3]));
 	return 0;
@@ -181,6 +179,44 @@ int init()
 	
 	GlobalDataZYS::Groups.insert(pair<int, map<string, BaseGroup*>>(1, *(new map<string, BaseGroup*>)));
 	GlobalDataZYS::Groups.insert(pair<int, map<string, BaseGroup*>>(2, *(new map<string, BaseGroup*>)));
+
+	//装饰器类的初始化
+	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(0, [](BaseGroup*) {
+
+		return 0; }));
+	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(1,[](BaseGroup*) {
+		
+		return 0; }));
+	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(2, [](BaseGroup*) {
+
+		return 0; }));
+	GlobalDataZYS::GroupDecorater.insert(pair<int, function<int(BaseGroup*)>>(3, [](BaseGroup*) {
+
+		return 0; }));
+	//工厂模式的初始化
+	GlobalDataZYS::GroupFactory.insert(pair<string, function<BaseGroup*(char **argv)>>("10", [](char **argv) {
+		BaseGroup* Res;
+		if(argv==0)
+			Res = new WeChatGroupZYS();
+		else
+		{
+			Res = new WeChatGroupZYS(argv);
+			GlobalDataZYS::GroupDecorater[argv[6][1]-'0'](Res);//装饰
+		}
+		//TODO QQGROUP
+		return Res; }));
+	GlobalDataZYS::GroupFactory.insert(pair<string, function<BaseGroup*(char **argv)>>("20", [](char **argv) {
+		BaseGroup* Res;
+		if (argv == 0)
+			Res = new WeChatGroupZYS();
+		else
+		{
+			Res = new WeChatGroupZYS(argv);
+			char debug = argv[6][1];
+			GlobalDataZYS::GroupDecorater[argv[6][1] - '0'](Res);//装饰
+		}
+		return Res; }));
+
 
 	//读取所有用户信息
 	string SqlString = "SELECT * FROM USERS";
@@ -269,6 +305,29 @@ string idToGlobalid(int ProductCode, string id)
 	else
 		return iterfind->first;
 }
+
+int GetBindUsers( BaseUserZYS  * User, vector<BaseUserZYS*>& BindUserList)
+{
+	int size = GlobalDataZYS::UserList.size();
+	//在所有产品中寻找这个人
+	for (int i = 1; i <= size; i++)
+	{
+		if (i == User->ProductCode)
+			continue;
+		map<string, BaseUserZYS*>::iterator j;
+		j = GlobalDataZYS::UserList[i].find(User->GetGlobalid());
+		if (j == GlobalDataZYS::UserList[i].end())
+			continue;
+		else
+		{
+			BindUserList.push_back(j->second);
+		}
+	}
+	return 0;
+}
+
+
+
 
 string GetCorrectGroup(int ProductCode)
 {
@@ -361,9 +420,9 @@ int LoginView(int ProductCode)
 		}
 		if (GlobalDataZYS::UserList[ProductCode][Globalid]->LoginCheck())
 		{
-			GlobalDataZYS::CurrentUser = GlobalDataZYS::UserList[ProductCode][Globalid];
+			GlobalDataZYS::CurrentUser = GlobalDataZYS::UserList[ProductCode][Globalid]->GetGlobalid();
 			GlobalDataZYS::UserList[ProductCode][Globalid]->ShowFoos();
-			GlobalDataZYS::CurrentUser = NULL;
+			GlobalDataZYS::CurrentUser = "";
 			return 0;
 		}
 		return 0;
